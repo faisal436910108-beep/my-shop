@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>منصة محاكاة اختبارات محاسبية | الرئيسية</title>
+<meta name="description" content="منصة عربية لمحاكاة اختبارات المحاسبة والضريبة: أسئلة نظرية ومسائل عملية، مؤقت، نتائج مفصلة. جرّب الآن.">
+<link rel="canonical" href="https://example.com/">
+<meta name="robots" content="index, follow">
+<meta property="og:title" content="منصة محاكاة اختبارات محاسبية">
+<meta property="og:description" content="اختبارات محاسبية وزكاة/ضريبة بقوالب واقعية ونتائج فورية.">
+<meta property="og:url" content="https://example.com/">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://example.com/cover.jpg">
+<link rel="icon" href="/favicon.ico">
+<style>
+  :root{ --bg:#f9fafb; --card:#fff; --muted:#6b7280; --text:#1f2937; --brand:#3b82f6; --border:rgba(0,0,0,.12);}
+  *{box-sizing:border-box}
+  body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
+  a{color:inherit; text-decoration:none}
+
+  /* Header */
+  header{position:sticky; top:0; z-index:60; backdrop-filter: blur(10px); background: color-mix(in srgb, var(--bg) 95%, transparent); border-bottom:1px solid var(--border)}
+  .topbar{max-width:1100px; margin:auto; padding:10px 16px; display:flex; align-items:center; gap:12px}
+  .logo{width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--brand),#60a5fa)}
+  .brand{font-weight:800}
+  .spacer{flex:1}
+  .nav a{padding:8px 10px; border-radius:10px; border:1px solid transparent}
+  .nav a.active, .nav a:hover{border-color:var(--border); background:rgba(0,0,0,.04)}
+  .login-top-btn{background:#fff; border:1px solid var(--border); padding:8px 12px; border-radius:10px; cursor:pointer}
+  .userchip{display:flex; align-items:center; gap:8px; background:#eef2ff; color:#1e293b; border:1px solid var(--border); padding:6px 10px; border-radius:999px; font-size:14px}
+  .logout{cursor:pointer; color:#ef4444; font-weight:700}
+
+  /* Layout */
+  .container{max-width:1100px; margin:16px auto; padding:0 16px}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .grid{display:grid; gap:12px; grid-template-columns:1fr 1fr}
+  @media(max-width:800px){.grid{grid-template-columns:1fr}}
+  .muted{color:var(--muted)}
+  .btn{background:#f3f4f6; color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px 14px; cursor:pointer}
+  .btn.primary{background:linear-gradient(135deg,var(--brand),#60a5fa); color:#fff; font-weight:800; border-color:transparent}
+  .hidden{display:none !important}
+
+  /* HUD */
+  .timer{position:fixed; top:14px; inset-inline-end:14px; z-index:55; background:#fff; border:1px solid var(--border); border-radius:12px; padding:8px 12px; font-weight:800; min-width:140px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .infochips{position:fixed; bottom:14px; inset-inline-start:14px; z-index:55; display:flex; gap:8px; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:12px; padding:8px 12px; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .chip{background:#f3f4f6; border:1px solid var(--border); border-radius:999px; padding:4px 10px; font-size:14px}
+
+  /* Quiz Box */
+  .square{width:min(92vw, 560px); margin:auto; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px; display:grid; grid-template-rows:auto auto auto auto auto; gap:14px; position:relative; z-index:80; box-shadow:0 4px 12px rgba(0,0,0,.1)}
+  .title{font-weight:800; font-size:18px}
+  .progress{font-size:14px; color:var(--muted)}
+  .qbox{background:#f3f4f6; border:1px solid var(--border); border-radius:12px; padding:14px; line-height:1.75; font-size:18px}
+  .answers{margin-top:10px}
+  .choices{display:grid; gap:12px}
+  .choice{appearance:none; border:1px solid rgba(0,0,0,.12); background:#fff; color:inherit; padding:12px 14px; border-radius:12px; text-align:start; cursor:pointer; transition:all .2s ease}
+  .choice:hover{transform:translateY(-1px); border-color:var(--brand); background:#eff6ff}
+  .choice.selected{outline:2px solid var(--brand); background:#dbeafe}
+  .final{text-align:center; font-weight:800; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:#f9fafb}
+  .review{margin-top:14px; padding:12px; border-radius:12px; background:#f9fafb; border:1px solid var(--border); font-size:14px; line-height:1.6}
+  .correctAns{color:#16a34a} .wrongAns{color:#dc2626}
+  .row{display:flex; gap:8px; justify-content:center}
+  .pass{color:#16a34a} .fail{color:#dc2626}
+
+  /* Right nav numbers (works even with 1 Q) */
+  .qpanel{position:fixed; top:86px; inset-inline-end:14px; z-index:40; width:240px; max-height:60vh; overflow:auto; background:#fff; border:1px solid var(--border); border-radius:14px; padding:10px; box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .qpanel h4{margin:0 0 8px; font-size:14px; color:var(--muted)}
+  .qnav{display:grid; grid-template-columns:repeat(5,1fr); gap:6px}
+  .qnum{padding:8px 0; border:1px solid var(--border); background:#f3f4f6; color:var(--text); border-radius:10px; cursor:pointer; text-align:center; font-weight:700}
+  .qnum.active{outline:2px solid var(--brand); background:#dbeafe}
+  .qnum.answered{border-color:var(--brand)}
+
+  /* Login page block (modal-like page) */
+  .login-wrap{display:grid; place-items:center; min-height:60vh}
+  .login-form{display:grid; gap:12px; max-width:420px; width:100%}
+  .input{width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:#fff; font-size:16px}
+  .hint{font-size:13px; color:var(--muted)}
+  .error-msg{color:#dc2626; font-weight:700; font-size:14px}
+  .toast{position:fixed; top:80px; inset-inline-start:50%; transform:translateX(-50%); background:#fff; color:#111827; border:1px solid var(--border); padding:10px 14px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.08); z-index:70}
+</style>
+<!-- Structured Data -->
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebSite","name":"منصة محاكاة اختبارات محاسبية","url":"https://example.com/","inLanguage":"ar","potentialAction":{"@type":"SearchAction","target":"https://example.com/?q={search_term_string}","query-input":"required name=search_term_string"}}
+</script>
+</head>
+<body>
+<header>
+  <div class="topbar">
+    <div class="logo" aria-hidden="true"></div>
+    <div class="brand">منصة محاكاة الاختبارات</div>
+    <div class="spacer"></div>
+
+    <!-- Login chip/button -->
+    <button id="loginTopBtn" class="login-top-btn" type="button">تسجيل الدخول</button>
+    <div id="userChip" class="userchip hidden">
+      <span id="userEmailText">—</span>
+      <span class="logout" id="logoutBtn" title="تسجيل الخروج">خروج</span>
+    </div>
+
+    <nav class="nav">
+      <a href="/index.html" class="active">الرئيسية</a>
+      <a href="/bank.html">بنك الأسئلة</a>
+      <a href="/about.html">عن المنصّة</a>
+      <a href="/results.html">إرشادات</a>
+    </nav>
+  </div>
+</header>
+
+<div class="container">
+  <!-- صفحة تسجيل الدخول كقسم مستقل في الرئيسية -->
+  <section id="page-login" class="page hidden">
+    <div class="login-wrap">
+      <div class="card login-form">
+        <h2>تسجيل الدخول للبدء</h2>
+        <label>البريد الإلكتروني
+          <input id="emailInput" type="email" class="input" placeholder="name@example.com" autocomplete="email" required>
+        </label>
+        <div class="hint">يمكنك التصفح بحرية، لكن لبدء الاختبار يجب تسجيل الدخول.</div>
+        <div id="loginError" class="error-msg hidden">فضلاً أدخل بريدًا صحيحًا.</div>
+        <button id="loginBtn" class="btn primary" type="button">تسجيل الدخول</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- البداية -->
+  <section id="page-start" class="page">
+    <div class="grid">
+      <div class="card">
+        <h1 style="margin:0 0 6px">ابدأ الاختبار</h1>
+        <p class="muted">اضغط الزر لبدء العدّ التنازلي وفتح لوحة الاختبار.</p>
+        <button class="btn primary" id="goToQuiz">ابدأ الآن</button>
+      </div>
+      <div class="card">
+        <h3>لماذا هذه المنصّة؟</h3>
+        <p class="muted">أسئلة نظرية ومسائل عملية بالمحاسبة والضريبة، مؤقت، مراجعة إجابات، وواجهة RTL عربية.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- الاختبار -->
+  <section id="page-quiz" class="page hidden">
+    <div class="timer hidden" id="timer">05:00</div>
+    <div class="infochips hidden" id="infochips">
+      <span class="chip" id="progress">سؤال 1 / 1</span>
+      <span class="chip">النقاط: <span id="score">0</span></span>
+    </div>
+
+    <aside class="qpanel hidden" id="qpanel">
+      <h4>أسئلة</h4>
+      <div class="qnav" id="qnav"></div>
+    </aside>
+
+    <div class="square">
+      <div class="title">لوحة الاختبار</div>
+      <div class="progress" id="pSmall">—</div>
+      <div class="qbox" id="qText">—</div>
+      <div class="answers"><div class="choices" id="choices"></div></div>
+      <div class="final hidden" id="finalBox"></div>
+      <div class="review hidden" id="reviewBox"></div>
+      <div class="row">
+        <button class="btn" id="nextBtn" type="button" disabled>التالي ⏭️</button>
+        <button class="btn hidden" id="restartBtn" type="button">إعادة البدء ↻</button>
+      </div>
+    </div>
+  </section>
+</div>
+
+<div id="toast" class="toast hidden">يجب تسجيل الدخول لبدء الاختبار</div>
+
+<script>
+/* ==== صفحات بسيطة داخل الرئيسية ==== */
+const pages={login:document.getElementById('page-login'), start:document.getElementById('page-start'), quiz:document.getElementById('page-quiz')};
+function show(section){ Object.values(pages).forEach(p=>p.classList.add('hidden')); pages[section].classList.remove('hidden'); if(section!=='quiz') hideHUD(); }
+
+/* ==== Auth UI ==== */
+const userChip=document.getElementById('userChip');
+const userEmailText=document.getElementById('userEmailText');
+const logoutBtn=document.getElementById('logoutBtn');
+const loginTopBtn=document.getElementById('loginTopBtn');
+const emailInput=document.getElementById('emailInput');
+const loginBtn=document.getElementById('loginBtn');
+const loginError=document.getElementById('loginError');
+const toast=document.getElementById('toast');
+function isLoggedIn(){ return !!localStorage.getItem('userEmail'); }
+function updateAuthUI(){ const em=localStorage.getItem('userEmail'); if(em){userChip.classList.remove('hidden'); userEmailText.textContent=em; loginTopBtn.classList.add('hidden');} else {userChip.classList.add('hidden'); loginTopBtn.classList.remove('hidden');} }
+function showToast(msg){ toast.textContent=msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), 2000); }
+loginBtn.addEventListener('click', ()=>{ const email=(emailInput.value||'').trim(); const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); if(!ok){ loginError.classList.remove('hidden'); emailInput.focus(); return; } loginError.classList.add('hidden'); localStorage.setItem('userEmail', email); updateAuthUI(); showToast('تم تسجيل الدخول'); show('start'); });
+logoutBtn.addEventListener('click', ()=>{ localStorage.removeItem('userEmail'); stopTimer(); hideHUD(); updateAuthUI(); showToast('تم تسجيل الخروج'); show('login'); });
+loginTopBtn.addEventListener('click', ()=> show('login'));
+
+/* ==== عناصر الاختبار ==== */
+const goToQuiz=document.getElementById('goToQuiz');
+const timerEl=document.getElementById('timer');
+const infochips=document.getElementById('infochips');
+const progressEl=document.getElementById('progress');
+const scoreEl=document.getElementById('score');
+const pSmall=document.getElementById('pSmall');
+const qText=document.getElementById('qText');
+const choicesBox=document.getElementById('choices');
+const finalBox=document.getElementById('finalBox');
+const reviewBox=document.getElementById('reviewBox');
+const nextBtn=document.getElementById('nextBtn');
+const restartBtn=document.getElementById('restartBtn');
+const qpanel=document.getElementById('qpanel');
+const qnav=document.getElementById('qnav');
+
+function showHUD(){ timerEl.classList.remove('hidden'); infochips.classList.remove('hidden'); qpanel.classList.remove('hidden'); }
+function hideHUD(){ timerEl.classList.add('hidden'); infochips.classList.add('hidden'); qpanel.classList.add('hidden'); }
+
+/* سؤال واحد للتجربة */
+const INITIAL_SECONDS=5*60;
+const QUESTIONS=[{ text:"[نظري] أي الجمل أدق عن القسط الثابت؟", choices:["يستهلك قيمة الأصل بالكامل بغض النظر عن المتبقي","قسط سنوي = (التكلفة - المتبقي) ÷ العمر","لا يتأثر بأي تغيير تقدير","لا يجوز استخدامه للأصول الإنتاجية"], correctIndex:1 }];
+
+let remaining=INITIAL_SECONDS, intervalId=null, idx=0, finished=false, userAnswers=[], score=0;
+
+function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;const pad=n=>String(n).padStart(2,'0');return `${pad(h)}:${pad(m)}:${pad(ss)}`}
+function updateTimerUI(){ timerEl.textContent=fmt(remaining); }
+function tick(){ remaining--; if(remaining<=0){ remaining=0; stopTimer(); return endQuiz("انتهى الوقت ⏰"); } updateTimerUI(); }
+function startTimer(){ stopTimer(); intervalId=setInterval(tick,1000); }
+function stopTimer(){ if(intervalId){ clearInterval(intervalId); intervalId=null; } }
+
+function begin(){
+  if(!isLoggedIn()){ showToast('يجب تسجيل الدخول لبدء الاختبار'); show('login'); return; }
+  show('quiz'); showHUD();
+  finalBox.classList.add('hidden'); reviewBox.classList.add('hidden');
+  remaining=INITIAL_SECONDS; updateTimerUI(); startTimer();
+  idx=0; finished=false; userAnswers=new Array(QUESTIONS.length).fill(null); score=0; scoreEl.textContent=score;
+  renderQNav(); loadQuestion();
+}
+function restart(){ stopTimer(); begin(); restartBtn.classList.add('hidden'); nextBtn.disabled=(userAnswers[idx]==null); }
+
+function renderQNav(disable=false){
+  qnav.innerHTML='';
+  QUESTIONS.forEach((_,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='qnum'; b.textContent=(i+1);
+    if(i===idx) b.classList.add('active'); if(userAnswers[i]!==null) b.classList.add('answered'); b.disabled=disable;
+    b.addEventListener('click',()=>{ if(finished) return; idx=i; loadQuestion(); renderQNav(); });
+    qnav.appendChild(b);
+  });
+}
+function loadQuestion(){
+  if(idx>=QUESTIONS.length) return endQuiz("انتهيت من جميع الأسئلة 🎉");
+  const q=QUESTIONS[idx];
+  qText.textContent=q.text;
+  progressEl.textContent=`سؤال ${idx+1} / ${QUESTIONS.length}`;
+  pSmall.textContent=`${idx+1} من ${QUESTIONS.length}`;
+  choicesBox.innerHTML='';
+  q.choices.forEach((label,i)=>{ const btn=document.createElement('button'); btn.type='button'; btn.className='choice'; btn.textContent=label;
+    if(userAnswers[idx]===i) btn.classList.add('selected');
+    btn.addEventListener('click',()=>{ document.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected')); btn.classList.add('selected'); userAnswers[idx]=i; nextBtn.disabled=false; renderQNav(); });
+    choicesBox.appendChild(btn);
+  });
+  nextBtn.disabled=(userAnswers[idx]==null);
+}
+function nextQuestion(){ if(finished) return; if(userAnswers[idx]==null) return; idx++; if(idx<QUESTIONS.length){ loadQuestion(); renderQNav(); } else endQuiz("انتهيت من جميع الأسئلة 🎉"); }
+function endQuiz(message){
+  finished=true; stopTimer();
+  score = userAnswers.reduce((acc,ans,i)=> acc + ((ans===QUESTIONS[i].correctIndex)?1:0), 0);
+  scoreEl.textContent=score;
+  const total=QUESTIONS.length, pct=Math.round((score/total)*100), passed=pct>=60;
+  finalBox.classList.remove('hidden');
+  finalBox.innerHTML=`<div>${message}</div><div style="margin-top:6px">نتيجتك: <strong>${score}</strong> من <strong>${total}</strong> — (<strong>${pct}%</strong>)</div><div class="${passed?'pass':'fail'}" style="margin-top:8px;font-size:18px;font-weight:800">${passed?'ناجح 🎉':'راسب • سيتم خصم رسوم الاختبار'}</div>`;
+  const rows=QUESTIONS.map((q,i)=>{ const your=userAnswers[i]!=null?q.choices[userAnswers[i]]:'—'; const ok=q.choices[q.correctIndex]; const okCls=(userAnswers[i]===q.correctIndex)?'correctAns':'wrongAns'; return `<div><strong>س${i+1}:</strong> ${q.text}<br>إجابتك: <span class="${okCls}">${your}</span><br>الصحيحة: <span class="correctAns">${ok}</span></div>`; }).join('<hr>');
+  reviewBox.classList.remove('hidden'); reviewBox.innerHTML='<h3>مراجعة الإجابات:</h3>'+rows;
+  renderQNav(true); nextBtn.disabled=true; restartBtn.classList.remove('hidden'); restartBtn.onclick=restart;
+}
+
+document.getElementById('goToQuiz').addEventListener('click', begin);
+nextBtn.addEventListener('click', nextQuestion);
+
+/* init */
+updateAuthUI(); show('start');
+</script>
+</body>
+</html>
