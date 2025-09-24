@@ -25,8 +25,8 @@
   .logo{width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--brand),#60a5fa)}
   .brand{font-weight:800}
   .spacer{flex:1}
-  .nav a{padding:8px 10px; border-radius:10px; border:1px solid transparent}
-  .nav a.active, .nav a:hover{border-color:var(--border); background:rgba(0,0,0,.04)}
+  .nav a, .nav button{padding:8px 10px; border-radius:10px; border:1px solid transparent; background:transparent; cursor:pointer; font:inherit; color:inherit}
+  .nav a.active, .nav a:hover, .nav button:hover{border-color:var(--border); background:rgba(0,0,0,.04)}
   .login-top-btn{background:#fff; border:1px solid var(--border); padding:8px 12px; border-radius:10px; cursor:pointer}
   .userchip{display:flex; align-items:center; gap:8px; background:#eef2ff; color:#1e293b; border:1px solid var(--border); padding:6px 10px; border-radius:999px; font-size:14px}
   .logout{cursor:pointer; color:#ef4444; font-weight:700}
@@ -62,7 +62,7 @@
   .row{display:flex; gap:8px; justify-content:center}
   .pass{color:#16a34a} .fail{color:#dc2626}
 
-  /* Right nav numbers (works even with 1 Q) */
+  /* Right nav numbers */
   .qpanel{position:fixed; top:86px; inset-inline-end:14px; z-index:40; width:240px; max-height:60vh; overflow:auto; background:#fff; border:1px solid var(--border); border-radius:14px; padding:10px; box-shadow:0 2px 6px rgba(0,0,0,.08)}
   .qpanel h4{margin:0 0 8px; font-size:14px; color:var(--muted)}
   .qnav{display:grid; grid-template-columns:repeat(5,1fr); gap:6px}
@@ -70,14 +70,39 @@
   .qnum.active{outline:2px solid var(--brand); background:#dbeafe}
   .qnum.answered{border-color:var(--brand)}
 
-  /* Login page block (modal-like page) */
+  /* Login */
   .login-wrap{display:grid; place-items:center; min-height:60vh}
   .login-form{display:grid; gap:12px; max-width:420px; width:100%}
   .input{width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:#fff; font-size:16px}
   .hint{font-size:13px; color:var(--muted)}
   .error-msg{color:#dc2626; font-weight:700; font-size:14px}
   .toast{position:fixed; top:80px; inset-inline-start:50%; transform:translateX(-50%); background:#fff; color:#111827; border:1px solid var(--border); padding:10px 14px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.08); z-index:70}
+
+  /* History (سجل نتائجي) */
+  .table{width:100%; border-collapse:collapse; font-size:14px}
+  .table th, .table td{border-bottom:1px solid var(--border); padding:10px; text-align:start}
+  .table th{background:#f3f4f6; color:#111827; position:sticky; top:0}
+  .pill{display:inline-block; padding:2px 8px; border-radius:999px; font-weight:700; border:1px solid var(--border)}
+  .pill.pass{color:#16a34a; border-color:#16a34a33; background:#16a34a0f}
+  .pill.fail{color:#dc2626; border-color:#dc262633; background:#dc26260f}
+  .hist-cards{display:none}
+  @media (max-width:720px){
+    .hist-table{display:none}
+    .hist-cards{display:grid; gap:10px}
+    .hist-card{border:1px solid var(--border); border-radius:12px; padding:12px; background:#fff}
+    .hist-row{display:flex; justify-content:space-between; gap:12px; margin:6px 0}
+    .hist-label{color:#6b7280}
+  }
 </style>
+
+<!-- Supabase SDK + التهيئة (بدّل القيم) -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const SUPABASE_URL  = "https://YOUR-PROJECT.supabase.co";       // <-- غيّرها
+  const SUPABASE_ANON = "YOUR_PUBLIC_ANON_KEY";                    // <-- غيّرها
+  const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+</script>
+
 <!-- Structured Data -->
 <script type="application/ld+json">
 {"@context":"https://schema.org","@type":"WebSite","name":"منصة محاكاة اختبارات محاسبية","url":"https://example.com/","inLanguage":"ar","potentialAction":{"@type":"SearchAction","target":"https://example.com/?q={search_term_string}","query-input":"required name=search_term_string"}}
@@ -102,22 +127,28 @@
       <a href="/bank.html">بنك الأسئلة</a>
       <a href="/about.html">عن المنصّة</a>
       <a href="/results.html">إرشادات</a>
+      <button id="historyTopBtn" title="سجل نتائجي">سجل نتائجي</button>
     </nav>
   </div>
 </header>
 
 <div class="container">
-  <!-- صفحة تسجيل الدخول كقسم مستقل في الرئيسية -->
+  <!-- صفحة تسجيل الدخول -->
   <section id="page-login" class="page hidden">
     <div class="login-wrap">
       <div class="card login-form">
         <h2>تسجيل الدخول للبدء</h2>
+
         <label>البريد الإلكتروني
           <input id="emailInput" type="email" class="input" placeholder="name@example.com" autocomplete="email" required>
         </label>
-        <div class="hint">يمكنك التصفح بحرية، لكن لبدء الاختبار يجب تسجيل الدخول.</div>
+
+        <div class="hint">أدخل بريدك وسنرسل لك رابط تسجيل الدخول. لا تحتاج كلمة مرور.</div>
         <div id="loginError" class="error-msg hidden">فضلاً أدخل بريدًا صحيحًا.</div>
-        <button id="loginBtn" class="btn primary" type="button">تسجيل الدخول</button>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap">
+          <button id="sendLinkBtn" class="btn primary" type="button">أرسل رابط تسجيل الدخول</button>
+        </div>
       </div>
     </div>
   </section>
@@ -163,32 +194,129 @@
       </div>
     </div>
   </section>
+
+  <!-- سجل نتائجي -->
+  <section id="page-history" class="page hidden">
+    <div class="card">
+      <h2 style="margin:0 0 10px">سجل نتائجي</h2>
+      <p class="muted" id="histHint">يعرض آخر محاولاتك بعد تسجيل الدخول.</p>
+
+      <!-- جدول للشاشات الكبيرة -->
+      <div class="hist-table">
+        <table class="table" id="historyTable">
+          <thead>
+            <tr>
+              <th>التاريخ</th>
+              <th>النتيجة</th>
+              <th>النسبة</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="historyTbody">
+            <tr><td colspan="4" class="muted">لا توجد بيانات بعد…</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- بطاقات للشاشات الصغيرة -->
+      <div class="hist-cards" id="historyCards"></div>
+    </div>
+  </section>
 </div>
 
 <div id="toast" class="toast hidden">يجب تسجيل الدخول لبدء الاختبار</div>
 
 <script>
-/* ==== صفحات بسيطة داخل الرئيسية ==== */
-const pages={login:document.getElementById('page-login'), start:document.getElementById('page-start'), quiz:document.getElementById('page-quiz')};
-function show(section){ Object.values(pages).forEach(p=>p.classList.add('hidden')); pages[section].classList.remove('hidden'); if(section!=='quiz') hideHUD(); }
+/* ====== صفحات ====== */
+const pages = {
+  login : document.getElementById('page-login'),
+  start : document.getElementById('page-start'),
+  quiz  : document.getElementById('page-quiz'),
+  history: document.getElementById('page-history'),
+};
+function show(name){
+  Object.values(pages).forEach(p=>p.classList.add('hidden'));
+  pages[name].classList.remove('hidden');
+  if(name!=='quiz') hideHUD?.();
+}
 
-/* ==== Auth UI ==== */
-const userChip=document.getElementById('userChip');
-const userEmailText=document.getElementById('userEmailText');
-const logoutBtn=document.getElementById('logoutBtn');
-const loginTopBtn=document.getElementById('loginTopBtn');
-const emailInput=document.getElementById('emailInput');
-const loginBtn=document.getElementById('loginBtn');
-const loginError=document.getElementById('loginError');
-const toast=document.getElementById('toast');
-function isLoggedIn(){ return !!localStorage.getItem('userEmail'); }
-function updateAuthUI(){ const em=localStorage.getItem('userEmail'); if(em){userChip.classList.remove('hidden'); userEmailText.textContent=em; loginTopBtn.classList.add('hidden');} else {userChip.classList.add('hidden'); loginTopBtn.classList.remove('hidden');} }
-function showToast(msg){ toast.textContent=msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), 2000); }
-loginBtn.addEventListener('click', ()=>{ const email=(emailInput.value||'').trim(); const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); if(!ok){ loginError.classList.remove('hidden'); emailInput.focus(); return; } loginError.classList.add('hidden'); localStorage.setItem('userEmail', email); updateAuthUI(); showToast('تم تسجيل الدخول'); show('start'); });
-logoutBtn.addEventListener('click', ()=>{ localStorage.removeItem('userEmail'); stopTimer(); hideHUD(); updateAuthUI(); showToast('تم تسجيل الخروج'); show('login'); });
-loginTopBtn.addEventListener('click', ()=> show('login'));
+/* ====== عناصر دخول ====== */
+const loginTopBtn    = document.getElementById('loginTopBtn');
+const userChip       = document.getElementById('userChip');
+const userEmailText  = document.getElementById('userEmailText');
+const logoutBtn      = document.getElementById('logoutBtn');
+const emailInput     = document.getElementById('emailInput');
+const sendLinkBtn    = document.getElementById('sendLinkBtn');
+const loginError     = document.getElementById('loginError');
+const toast          = document.getElementById('toast');
+const historyTopBtn  = document.getElementById('historyTopBtn');
 
-/* ==== عناصر الاختبار ==== */
+function showToast(msg){ toast.textContent=msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), 2200); }
+function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
+/* ====== Magic Link ====== */
+async function loginWithEmail(email){
+  const { error } = await supa.auth.signInWithOtp({
+    email,
+    options: { emailRedirectTo: window.location.origin }
+  });
+  if (error) throw error;
+}
+
+/* ====== تحديث واجهة حسب الجلسة ====== */
+async function refreshAuthUI(){
+  const { data: { user } } = await supa.auth.getUser();
+  if (user){
+    userChip.classList.remove('hidden');
+    loginTopBtn.classList.add('hidden');
+    userEmailText.textContent = user.email || '—';
+    // تأكد وجود بروفايل
+    await supa.from('profiles').upsert({ id: user.id, full_name: null });
+  } else {
+    userChip.classList.add('hidden');
+    loginTopBtn.classList.remove('hidden');
+  }
+}
+
+/* مراقبة الحالة */
+supa.auth.onAuthStateChange(async (_evt, _session)=>{ await refreshAuthUI(); });
+
+/* أزرار */
+loginTopBtn?.addEventListener('click', ()=> show('login'));
+sendLinkBtn?.addEventListener('click', async ()=>{
+  const email = (emailInput.value||'').trim();
+  if(!isValidEmail(email)){ loginError.classList.remove('hidden'); emailInput.focus(); return; }
+  loginError.classList.add('hidden');
+  try{
+    await loginWithEmail(email);
+    showToast('تم إرسال رابط تسجيل الدخول إلى بريدك');
+  }catch(e){
+    loginError.classList.remove('hidden');
+    loginError.textContent = 'خطأ: '+e.message;
+  }
+});
+logoutBtn?.addEventListener('click', async ()=>{
+  await supa.auth.signOut();
+  stopTimer?.();
+  hideHUD?.();
+  show('login');
+  showToast('تم تسجيل الخروج');
+});
+historyTopBtn?.addEventListener('click', async ()=>{
+  const ok = await requireAuthOrRedirect();
+  if(!ok) return;
+  show('history');
+  loadMyResults();
+});
+
+/* ====== حماية البدء ====== */
+async function requireAuthOrRedirect(){
+  const { data: { user } } = await supa.auth.getUser();
+  if(!user){ show('login'); showToast('يجب تسجيل الدخول'); return false; }
+  return true;
+}
+
+/* ====== عناصر الاختبار ====== */
 const goToQuiz=document.getElementById('goToQuiz');
 const timerEl=document.getElementById('timer');
 const infochips=document.getElementById('infochips');
@@ -219,15 +347,21 @@ function tick(){ remaining--; if(remaining<=0){ remaining=0; stopTimer(); return
 function startTimer(){ stopTimer(); intervalId=setInterval(tick,1000); }
 function stopTimer(){ if(intervalId){ clearInterval(intervalId); intervalId=null; } }
 
-function begin(){
-  if(!isLoggedIn()){ showToast('يجب تسجيل الدخول لبدء الاختبار'); show('login'); return; }
+function beginWrapper(){
   show('quiz'); showHUD();
   finalBox.classList.add('hidden'); reviewBox.classList.add('hidden');
   remaining=INITIAL_SECONDS; updateTimerUI(); startTimer();
   idx=0; finished=false; userAnswers=new Array(QUESTIONS.length).fill(null); score=0; scoreEl.textContent=score;
   renderQNav(); loadQuestion();
 }
-function restart(){ stopTimer(); begin(); restartBtn.classList.add('hidden'); nextBtn.disabled=(userAnswers[idx]==null); }
+
+async function begin(){
+  const ok = await requireAuthOrRedirect();
+  if(!ok) return;
+  beginWrapper();
+}
+
+function restart(){ stopTimer(); beginWrapper(); restartBtn.classList.add('hidden'); nextBtn.disabled=(userAnswers[idx]==null); }
 
 function renderQNav(disable=false){
   qnav.innerHTML='';
@@ -252,23 +386,112 @@ function loadQuestion(){
   nextBtn.disabled=(userAnswers[idx]==null);
 }
 function nextQuestion(){ if(finished) return; if(userAnswers[idx]==null) return; idx++; if(idx<QUESTIONS.length){ loadQuestion(); renderQNav(); } else endQuiz("انتهيت من جميع الأسئلة 🎉"); }
+
+/* حفظ النتيجة في Supabase (آمن تحت RLS) */
+async function saveResultToDB({ score, total, reviewDetails }){
+  const { data: { user } } = await supa.auth.getUser();
+  if(!user) return;
+  const { error } = await supa.from('results').insert({
+    user_id: user.id,
+    score,
+    total,
+    details: reviewDetails
+  });
+  if (error) console.error('DB insert error:', error.message);
+}
+
 function endQuiz(message){
   finished=true; stopTimer();
   score = userAnswers.reduce((acc,ans,i)=> acc + ((ans===QUESTIONS[i].correctIndex)?1:0), 0);
   scoreEl.textContent=score;
   const total=QUESTIONS.length, pct=Math.round((score/total)*100), passed=pct>=60;
   finalBox.classList.remove('hidden');
-  finalBox.innerHTML=`<div>${message}</div><div style="margin-top:6px">نتيجتك: <strong>${score}</strong> من <strong>${total}</strong> — (<strong>${pct}%</strong>)</div><div class="${passed?'pass':'fail'}" style="margin-top:8px;font-size:18px;font-weight:800">${passed?'ناجح 🎉':'راسب • أرجع ذاكر   '}</div>`;
+  finalBox.innerHTML=`<div>${message}</div><div style="margin-top:6px">نتيجتك: <strong>${score}</strong> من <strong>${total}</strong> — (<strong>${pct}%</strong>)</div><div class="${passed?'pass':'fail'}" style="margin-top:8px;font-size:18px;font-weight:800">${passed?'ناجح 🎉':'راسب • أرجع ذاكر'}</div>`;
   const rows=QUESTIONS.map((q,i)=>{ const your=userAnswers[i]!=null?q.choices[userAnswers[i]]:'—'; const ok=q.choices[q.correctIndex]; const okCls=(userAnswers[i]===q.correctIndex)?'correctAns':'wrongAns'; return `<div><strong>س${i+1}:</strong> ${q.text}<br>إجابتك: <span class="${okCls}">${your}</span><br>الصحيحة: <span class="correctAns">${ok}</span></div>`; }).join('<hr>');
   reviewBox.classList.remove('hidden'); reviewBox.innerHTML='<h3>مراجعة الإجابات:</h3>'+rows;
   renderQNav(true); nextBtn.disabled=true; restartBtn.classList.remove('hidden'); restartBtn.onclick=restart;
+
+  // احفظ النتيجة مع التفاصيل
+  try{
+    const payload = QUESTIONS.map((q,i)=>({
+      q: q.text,
+      your: userAnswers[i] != null ? q.choices[userAnswers[i]] : null,
+      correct: q.choices[q.correctIndex],
+      isCorrect: userAnswers[i] === q.correctIndex
+    }));
+    saveResultToDB({ score, total: QUESTIONS.length, reviewDetails: payload });
+  }catch(e){ console.warn(e); }
+}
+
+/* ====== سجل نتائجي ====== */
+async function loadMyResults(){
+  const tbody  = document.getElementById('historyTbody');
+  const cards  = document.getElementById('historyCards');
+  tbody.innerHTML = `<tr><td colspan="4" class="muted">جاري التحميل…</td></tr>`;
+  cards.innerHTML = '';
+
+  const { data: { user } } = await supa.auth.getUser();
+  if(!user){
+    tbody.innerHTML = `<tr><td colspan="4" class="muted">سجّل الدخول لعرض النتائج.</td></tr>`;
+    return;
+  }
+
+  const { data, error } = await supa
+    .from('results')
+    .select('score,total,percent,created_at')
+    .order('created_at', { ascending: false })
+    .limit(20);
+
+  if (error){
+    tbody.innerHTML = `<tr><td colspan="4" class="muted">حدث خطأ أثناء الجلب.</td></tr>`;
+    console.error(error.message);
+    return;
+  }
+
+  if (!data || data.length===0){
+    tbody.innerHTML = `<tr><td colspan="4" class="muted">لا توجد محاولات بعد…</td></tr>`;
+    return;
+  }
+
+  // جدول
+  tbody.innerHTML = '';
+  data.forEach(row=>{
+    const pct = Math.round(Number(row.percent ?? (row.total? (row.score/row.total*100) : 0)));
+    const pass = pct >= 60;
+    const tr = document.createElement('tr');
+    tr.innerHTML = `
+      <td>${new Date(row.created_at).toLocaleString('ar-SA')}</td>
+      <td><strong>${row.score}</strong> / ${row.total}</td>
+      <td>${pct}%</td>
+      <td><span class="pill ${pass?'pass':'fail'}">${pass?'ناجح':'راسب'}</span></td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  // بطاقات للجوال
+  data.forEach(row=>{
+    const pct = Math.round(Number(row.percent ?? (row.total? (row.score/row.total*100) : 0)));
+    const pass = pct >= 60;
+    const div = document.createElement('div');
+    div.className = 'hist-card';
+    div.innerHTML = `
+      <div class="hist-row"><span class="hist-label">التاريخ</span><span>${new Date(row.created_at).toLocaleString('ar-SA')}</span></div>
+      <div class="hist-row"><span class="hist-label">النتيجة</span><span><strong>${row.score}</strong> / ${row.total}</span></div>
+      <div class="hist-row"><span class="hist-label">النسبة</span><span>${pct}%</span></div>
+      <div class="hist-row"><span class="hist-label">الحالة</span><span class="pill ${pass?'pass':'fail'}">${pass?'ناجح':'راسب'}</span></div>
+    `;
+    cards.appendChild(div);
+  });
 }
 
 document.getElementById('goToQuiz').addEventListener('click', begin);
 nextBtn.addEventListener('click', nextQuestion);
 
 /* init */
-updateAuthUI(); show('start');
+(async ()=>{
+  await refreshAuthUI();
+  show('start');
+})();
 </script>
 </body>
 </html>
