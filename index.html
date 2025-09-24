@@ -4,26 +4,24 @@
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>منصة محاكاة اختبارات محاسبية | الرئيسية</title>
+<meta name="description" content="منصة عربية لمحاكاة اختبارات المحاسبة والضريبة: أسئلة نظرية ومسائل عملية، مؤقت، نتائج مفصلة. جرّب الآن.">
+<link rel="icon" href="/favicon.ico">
 <style>
   :root{ --bg:#f9fafb; --card:#fff; --muted:#6b7280; --text:#1f2937; --brand:#3b82f6; --border:rgba(0,0,0,.12);}
   *{box-sizing:border-box}
   body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
   a{color:inherit; text-decoration:none}
-
-  /* Header */
   header{position:sticky; top:0; z-index:60; backdrop-filter: blur(10px); background: color-mix(in srgb, var(--bg) 95%, transparent); border-bottom:1px solid var(--border)}
   .topbar{max-width:1100px; margin:auto; padding:10px 16px; display:flex; align-items:center; gap:12px}
   .logo{width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--brand),#60a5fa)}
   .brand{font-weight:800}
   .spacer{flex:1}
-  .nav a, .nav button{padding:8px 10px; border-radius:10px; border:1px solid transparent; background:transparent; cursor:pointer; color:inherit; font:inherit}
-  .nav a.active, .nav a:hover, .nav button:hover{border-color:var(--border); background:rgba(0,0,0,.04)}
+  .nav a{padding:8px 10px; border-radius:10px; border:1px solid transparent}
+  .nav a.active, .nav a:hover{border-color:var(--border); background:rgba(0,0,0,.04)}
   .login-top-btn{background:#fff; border:1px solid var(--border); padding:8px 12px; border-radius:10px; cursor:pointer}
   .userchip{display:flex; align-items:center; gap:8px; background:#eef2ff; color:#1e293b; border:1px solid var(--border); padding:6px 10px; border-radius:999px; font-size:14px}
   .logout{cursor:pointer; color:#ef4444; font-weight:700}
-  .hidden{display:none!important}
 
-  /* Layout */
   .container{max-width:1100px; margin:16px auto; padding:0 16px}
   .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,.08)}
   .grid{display:grid; gap:12px; grid-template-columns:1fr 1fr}
@@ -31,14 +29,15 @@
   .muted{color:var(--muted)}
   .btn{background:#f3f4f6; color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px 14px; cursor:pointer}
   .btn.primary{background:linear-gradient(135deg,var(--brand),#60a5fa); color:#fff; font-weight:800; border-color:transparent}
-  .btn[disabled]{opacity:.6; cursor:not-allowed}
+  .hidden{display:none !important}
+  .toast{position:fixed; top:80px; inset-inline-start:50%; transform:translateX(-50%); background:#fff; color:#111827; border:1px solid var(--border); padding:10px 14px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.08); z-index:70}
 
   /* HUD */
   .timer{position:fixed; top:14px; inset-inline-end:14px; z-index:55; background:#fff; border:1px solid var(--border); border-radius:12px; padding:8px 12px; font-weight:800; min-width:140px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.08)}
   .infochips{position:fixed; bottom:14px; inset-inline-start:14px; z-index:55; display:flex; gap:8px; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:12px; padding:8px 12px; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,.08)}
   .chip{background:#f3f4f6; border:1px solid var(--border); border-radius:999px; padding:4px 10px; font-size:14px}
 
-  /* Quiz Box */
+  /* مربع الاختبار */
   .square{width:min(92vw, 560px); margin:auto; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px; display:grid; grid-template-rows:auto auto auto auto auto; gap:14px; position:relative; z-index:80; box-shadow:0 4px 12px rgba(0,0,0,.1)}
   .title{font-weight:800; font-size:18px}
   .progress{font-size:14px; color:var(--muted)}
@@ -50,40 +49,18 @@
   .choice.selected{outline:2px solid var(--brand); background:#dbeafe}
   .final{text-align:center; font-weight:800; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:#f9fafb}
   .review{margin-top:14px; padding:12px; border-radius:12px; background:#f9fafb; border:1px solid var(--border); font-size:14px; line-height:1.6}
-  .correctAns{color:#16a34a} .wrongAns{color:#dc2626}
   .row{display:flex; gap:8px; justify-content:center}
   .pass{color:#16a34a} .fail{color:#dc2626}
-
-  /* Right nav numbers */
-  .qpanel{position:fixed; top:86px; inset-inline-end:14px; z-index:40; width:240px; max-height:60vh; overflow:auto; background:#fff; border:1px solid var(--border); border-radius:14px; padding:10px; box-shadow:0 2px 6px rgba(0,0,0,.08)}
-  .qpanel h4{margin:0 0 8px; font-size:14px; color:var(--muted)}
-  .qnav{display:grid; grid-template-columns:repeat(5,1fr); gap:6px}
-  .qnum{padding:8px 0; border:1px solid var(--border); background:#f3f4f6; color:#1f2937; border-radius:10px; cursor:pointer; text-align:center; font-weight:700}
-  .qnum.active{outline:2px solid var(--brand); background:#dbeafe}
-  .qnum.answered{border-color:var(--brand)}
-
-  /* Login page */
-  .login-wrap{display:grid; place-items:center; min-height:60vh}
-  .login-form{display:grid; gap:12px; max-width:420px; width:100%}
-  .input{width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:#fff; font-size:16px}
-  .hint{font-size:13px; color:#6b7280}
-  .error-msg{color:#dc2626; font-weight:700; font-size:14px}
-  .toast{position:fixed; top:80px; inset-inline-start:50%; transform:translateX(-50%); background:#fff; color:#111827; border:1px solid var(--border); padding:10px 14px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.08); z-index:70}
-
-  /* Pay box */
-  .paybox{display:flex; align-items:center; gap:10px; background:#f8fafc; border:1px dashed var(--border); padding:12px; border-radius:12px}
-  .price{font-weight:800}
 </style>
 </head>
 <body>
-
 <header>
   <div class="topbar">
     <div class="logo" aria-hidden="true"></div>
     <div class="brand">منصة محاكاة الاختبارات</div>
     <div class="spacer"></div>
 
-    <!-- زر/شارة الدخول -->
+    <!-- Login chip/button -->
     <button id="loginTopBtn" class="login-top-btn" type="button">تسجيل الدخول</button>
     <div id="userChip" class="userchip hidden">
       <span id="userEmailText">—</span>
@@ -91,50 +68,47 @@
     </div>
 
     <nav class="nav">
-      <a href="#" id="navHome" class="active">الرئيسية</a>
-      <a href="#" id="navResults">لوحة النتائج</a>
+      <a href="/index.html" class="active">الرئيسية</a>
+      <a href="/bank.html">بنك الأسئلة</a>
+      <a href="/about.html">عن المنصّة</a>
+      <a href="/results.html">إرشادات</a>
     </nav>
   </div>
 </header>
 
 <div class="container">
-  <!-- صفحة تسجيل الدخول -->
+  <!-- تسجيل الدخول كنبذة بسيطة -->
   <section id="page-login" class="page hidden">
-    <div class="login-wrap">
-      <div class="card login-form">
-        <h2>تسجيل الدخول</h2>
-        <label>البريد الإلكتروني
-          <input id="emailInput" type="email" class="input" placeholder="name@example.com" autocomplete="email" required>
-        </label>
-        <div class="hint">لن نطلب كلمة مرور. يكفي بريد صحيح لحفظ نتائجك.</div>
-        <div id="loginError" class="error-msg hidden">فضلاً أدخل بريدًا صحيحًا.</div>
-        <button id="loginBtn" class="btn primary" type="button">تسجيل الدخول</button>
-      </div>
+    <div class="card" style="max-width:520px;margin-inline:auto">
+      <h2>تسجيل الدخول للبدء</h2>
+      <label>البريد الإلكتروني
+        <input id="emailInput" type="email" style="width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;margin-top:6px" placeholder="name@example.com" autocomplete="email">
+      </label>
+      <div class="muted" style="margin-top:8px">يمكنك التصفح بحرية، لكن لبدء الاختبار يجب تسجيل الدخول.</div>
+      <div id="loginError" style="color:#dc2626;font-weight:700;margin-top:6px" class="hidden">فضلاً أدخل بريدًا صحيحًا.</div>
+      <button id="loginBtn" class="btn primary" type="button" style="margin-top:10px">تسجيل الدخول</button>
     </div>
   </section>
 
-  <!-- الرئيسية -->
+  <!-- الواجهة الرئيسية + الدفع -->
   <section id="page-start" class="page">
     <div class="grid">
       <div class="card">
-        <h2 style="margin:0 0 6px">ابدأ الاختبار</h2>
-        <p class="muted">عند الضغط يبدأ العدّ التنازلي (01:20:00) وتُفتح لوحة الاختبار.</p>
+        <h1 style="margin:0 0 6px">ابدأ الاختبار</h1>
+        <p class="muted">عند الضغط سيبدأ العدّ التنازلي <strong>(01:20:00)</strong> وتُفتح لوحة الاختبار.</p>
 
-        <!-- صندوق الدفع -->
-        <div class="paybox" id="payBox">
-          <span>سعر المحاولة:</span>
-          <span class="price">9 ريال</span>
-          <button id="payBtn" class="btn">ادفع 9 ريال لبدء الاختبار</button>
-          <span class="muted" id="payStatus"></span>
+        <div class="card" style="margin-top:10px;background:#f9fafb">
+          <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+            <div style="font-weight:800">سعر المحاولة:</div>
+            <div style="font-size:18px;font-weight:900;color:#0f172a">9 ريال</div>
+            <div class="muted">— محاولة واحدة (صالحة لمدة العدّ)</div>
+          </div>
+          <div class="muted" style="margin-top:6px">غير مدفوع — تحتاج تسديد 9 ريال لتفعيل المحاولة ثم فتح الاختبار.</div>
+          <button id="payBtn" class="btn primary" type="button" style="margin-top:10px">ادفع الآن</button>
         </div>
 
-        <div style="margin-top:10px">
-          <button class="btn primary" id="goToQuiz" disabled>ابدأ الآن</button>
-        </div>
-
-        <div class="hint" style="margin-top:8px">
-          للمعاينة فقط: افتح الرابط مع <code>?preview=1</code> لتجربة الواجهة وكأن الدفع مُفعّل مؤقتًا.
-        </div>
+        <button class="btn" id="goToQuiz" style="margin-top:12px" disabled>ابدأ الآن</button>
+        <div class="muted" style="margin-top:8px">للمعاينة فقط: بعد العودة من Stripe سيتم تفعيل البدء تلقائيًا لمدة 80 دقيقة.</div>
       </div>
 
       <div class="card">
@@ -152,12 +126,6 @@
       <span class="chip">النقاط: <span id="score">0</span></span>
     </div>
 
-    <!-- شبكة الأرقام يمين -->
-    <aside class="qpanel hidden" id="qpanel">
-      <h4>أسئلة</h4>
-      <div class="qnav" id="qnav"></div>
-    </aside>
-
     <div class="square">
       <div class="title">لوحة الاختبار</div>
       <div class="progress" id="pSmall">—</div>
@@ -171,68 +139,52 @@
       </div>
     </div>
   </section>
-
-  <!-- لوحة النتائج -->
-  <section id="page-results" class="page hidden">
-    <div class="card">
-      <h2 style="margin:0 0 6px">لوحة النتائج</h2>
-      <p class="muted">تعرض آخر محاولة بناءً على بريدك (عند ربط الحفظ لاحقًا).</p>
-      <div class="muted">—</div>
-    </div>
-  </section>
 </div>
 
 <div id="toast" class="toast hidden">—</div>
 
 <script>
-/* صفحات */
-const pages={login:document.getElementById('page-login'),start:document.getElementById('page-start'),quiz:document.getElementById('page-quiz'),results:document.getElementById('page-results')};
-function show(name){
-  if ((name==='quiz' || name==='results') && !isLoggedIn()) { name='login'; showToast('سجّل دخول بالبريد للمتابعة'); }
-  Object.values(pages).forEach(p=>p.classList.add('hidden'));
-  pages[name].classList.remove('hidden');
-  if(name!=='quiz') hideHUD();
-}
+/* ==== أدوات بسيطة ==== */
+const toast = document.getElementById('toast');
+function showToast(msg){ toast.textContent = msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'),2000); }
 
-/* تنقّل علوي */
-document.getElementById('navHome').addEventListener('click',(e)=>{e.preventDefault();show('start');});
-document.getElementById('navResults').addEventListener('click',(e)=>{e.preventDefault();if(!requireLogin())return;show('results');});
+/* ==== صفحات ==== */
+const sections = {
+  login: document.getElementById('page-login'),
+  start: document.getElementById('page-start'),
+  quiz:  document.getElementById('page-quiz'),
+};
+function show(name){ Object.values(sections).forEach(s=>s.classList.add('hidden')); sections[name].classList.remove('hidden'); if(name!=='quiz') hideHUD(); }
 
-/* شارة المستخدم */
-const loginTopBtn=document.getElementById('loginTopBtn');
+/* ==== Auth UI ==== */
 const userChip=document.getElementById('userChip');
 const userEmailText=document.getElementById('userEmailText');
 const logoutBtn=document.getElementById('logoutBtn');
-function updateAuthUI(){
-  const em = localStorage.getItem('userEmail');
-  if(em){ loginTopBtn.classList.add('hidden'); userChip.classList.remove('hidden'); userEmailText.textContent=em; }
-  else { loginTopBtn.classList.remove('hidden'); userChip.classList.add('hidden'); userEmailText.textContent='—'; }
-}
-loginTopBtn.addEventListener('click',()=>show('login'));
-logoutBtn.addEventListener('click',()=>{ localStorage.removeItem('userEmail'); localStorage.removeItem('purchase'); updateAuthUI(); updatePaymentUI(); show('login'); showToast('تم تسجيل الخروج'); });
-
-/* تسجيل الدخول */
+const loginTopBtn=document.getElementById('loginTopBtn');
 const emailInput=document.getElementById('emailInput');
 const loginBtn=document.getElementById('loginBtn');
 const loginError=document.getElementById('loginError');
-const toast=document.getElementById('toast');
-function showToast(msg){ toast.textContent=msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'),2000); }
-function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+
 function isLoggedIn(){ return !!localStorage.getItem('userEmail'); }
-function requireLogin(){ if(!isLoggedIn()){ show('login'); showToast('سجّل دخول بالبريد للمتابعة'); return false; } return true; }
-loginBtn.addEventListener('click', ()=> {
+function updateAuthUI(){
+  const em = localStorage.getItem('userEmail');
+  if(em){ userChip.classList.remove('hidden'); userEmailText.textContent = em; loginTopBtn.classList.add('hidden'); }
+  else   { userChip.classList.add('hidden');   loginTopBtn.classList.remove('hidden'); }
+}
+function requireLogin(){ if(!isLoggedIn()){ show('login'); showToast('سجّل دخولك أولًا'); return false; } return true; }
+
+loginBtn.addEventListener('click', ()=>{
   const email=(emailInput.value||'').trim();
-  if(!isValidEmail(email)){ loginError.classList.remove('hidden'); return; }
+  const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  if(!ok){ loginError.classList.remove('hidden'); return; }
   loginError.classList.add('hidden');
   localStorage.setItem('userEmail', email);
-  updateAuthUI();
-  updatePaymentUI();
-  show('start');
-  showToast('تم تسجيل الدخول');
+  updateAuthUI(); show('start'); showToast('تم تسجيل الدخول');
 });
+logoutBtn.addEventListener('click', ()=>{ localStorage.removeItem('userEmail'); updateAuthUI(); show('login'); showToast('تم تسجيل الخروج'); });
+loginTopBtn.addEventListener('click', ()=> show('login'));
 
-/* عناصر الاختبار */
-const goToQuiz=document.getElementById('goToQuiz');
+/* ==== عناصر الاختبار ==== */
 const timerEl=document.getElementById('timer');
 const infochips=document.getElementById('infochips');
 const progressEl=document.getElementById('progress');
@@ -244,34 +196,41 @@ const finalBox=document.getElementById('finalBox');
 const reviewBox=document.getElementById('reviewBox');
 const nextBtn=document.getElementById('nextBtn');
 const restartBtn=document.getElementById('restartBtn');
-const qpanel=document.getElementById('qpanel');
-const qnav=document.getElementById('qnav');
-function showHUD(){ timerEl.classList.remove('hidden'); infochips.classList.remove('hidden'); qpanel.classList.remove('hidden'); }
-function hideHUD(){ timerEl.classList.add('hidden'); infochips.classList.add('hidden'); qpanel.classList.add('hidden'); }
+const goToQuiz=document.getElementById('goToQuiz');
+const payBtn=document.getElementById('payBtn');
 
-/* العدّ 80 دقيقة */
+function showHUD(){ timerEl.classList.remove('hidden'); infochips.classList.remove('hidden'); }
+function hideHUD(){ timerEl.classList.add('hidden'); infochips.classList.add('hidden'); }
+
+/* مؤقت 80 دقيقة */
 const INITIAL_SECONDS = 80 * 60;
-let remaining=INITIAL_SECONDS, intervalId=null, finished=false;
+
+/* سؤال واحد للتجربة */
+const QUESTIONS=[{ text:"[نظري] أي الجمل أدق عن القسط الثابت؟", choices:["يستهلك قيمة الأصل بالكامل بغض النظر عن المتبقي","قسط سنوي = (التكلفة - المتبقي) ÷ العمر","لا يتأثر بأي تغيير تقدير","لا يجوز استخدامه للأصول الإنتاجية"], correctIndex:1 }];
+
+let remaining=INITIAL_SECONDS, intervalId=null, idx=0, finished=false, userAnswers=[], score=0;
+
 function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;const pad=n=>String(n).padStart(2,'0');return `${pad(h)}:${pad(m)}:${pad(ss)}`}
 function updateTimerUI(){ timerEl.textContent=fmt(remaining); }
-function tick(){ remaining--; if(remaining<=0){ remaining=0; stopTimer(); endQuiz("انتهى الوقت ⏰"); } updateTimerUI(); }
-function startTimer(){ remaining=INITIAL_SECONDS; updateTimerUI(); stopTimer(); intervalId=setInterval(tick,1000); }
+function tick(){ remaining--; if(remaining<=0){ remaining=0; stopTimer(); return endQuiz("انتهى الوقت ⏰"); } updateTimerUI(); }
+function startTimer(){ stopTimer(); intervalId=setInterval(tick,1000); }
 function stopTimer(){ if(intervalId){ clearInterval(intervalId); intervalId=null; } }
 
-/* سؤال تجريبي */
-const QUESTIONS=[{ text:"[نظري] أي الجمل أدق عن القسط الثابت؟", choices:["يستهلك قيمة الأصل بالكامل بغض النظر عن المتبقي","قسط سنوي = (التكلفة - المتبقي) ÷ العمر","لا يتأثر بأي تغيير تقدير","لا يجوز استخدامه للأصول الإنتاجية"], correctIndex:1 }];
-let idx=0, userAnswers=[], score=0;
-
-/* شبكة أرقام */
-function renderQNav(disable=false){
-  qnav.innerHTML='';
-  QUESTIONS.forEach((_,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='qnum'; b.textContent=(i+1);
-    if(i===idx)b.classList.add('active'); if(userAnswers[i]!==null)b.classList.add('answered');
-    b.disabled=disable;
-    b.addEventListener('click',()=>{ if(finished)return; idx=i; loadQuestion(); renderQNav(); });
-    qnav.appendChild(b);
-  });
+function begin(){
+  // السماح بالبدء فقط إذا كانت المحاولة مفعّلة
+  const purchase = JSON.parse(localStorage.getItem('purchase')||'null');
+  const now = Date.now();
+  if(!purchase || now > (new Date(purchase.expires_at)).getTime()){
+    showToast('يلزم دفع 9 ريال لتفعيل المحاولة'); return;
+  }
+  show('quiz'); showHUD();
+  finalBox.classList.add('hidden'); reviewBox.classList.add('hidden');
+  remaining=INITIAL_SECONDS; updateTimerUI(); startTimer();
+  idx=0; finished=false; userAnswers=new Array(QUESTIONS.length).fill(null); score=0; scoreEl.textContent=score;
+  loadQuestion();
 }
+function restart(){ stopTimer(); begin(); restartBtn.classList.add('hidden'); nextBtn.disabled=(userAnswers[idx]==null); }
+
 function loadQuestion(){
   if(idx>=QUESTIONS.length) return endQuiz("انتهيت من جميع الأسئلة 🎉");
   const q=QUESTIONS[idx];
@@ -279,105 +238,98 @@ function loadQuestion(){
   progressEl.textContent=`سؤال ${idx+1} / ${QUESTIONS.length}`;
   pSmall.textContent=`${idx+1} من ${QUESTIONS.length}`;
   choicesBox.innerHTML='';
-  q.choices.forEach((label,i)=>{ const btn=document.createElement('button'); btn.type='button'; btn.className='choice'; btn.textContent=label;
+  q.choices.forEach((label,i)=>{
+    const btn=document.createElement('button');
+    btn.type='button'; btn.className='choice'; btn.textContent=label;
     if(userAnswers[idx]===i) btn.classList.add('selected');
-    btn.addEventListener('click',()=>{ document.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected')); btn.classList.add('selected'); userAnswers[idx]=i; nextBtn.disabled=false; renderQNav(); });
+    btn.addEventListener('click',()=>{
+      document.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected'));
+      btn.classList.add('selected'); userAnswers[idx]=i; nextBtn.disabled=false;
+    });
     choicesBox.appendChild(btn);
   });
   nextBtn.disabled=(userAnswers[idx]==null);
 }
+function nextQuestion(){ if(finished) return; if(userAnswers[idx]==null) return; idx++; if(idx<QUESTIONS.length){ loadQuestion(); } else endQuiz("انتهيت من جميع الأسئلة 🎉"); }
 function endQuiz(message){
   finished=true; stopTimer();
   score = userAnswers.reduce((acc,ans,i)=> acc + ((ans===QUESTIONS[i].correctIndex)?1:0), 0);
   scoreEl.textContent=score;
   const total=QUESTIONS.length, pct=Math.round((score/total)*100), passed=pct>=60;
   finalBox.classList.remove('hidden');
-  finalBox.innerHTML=`<div>${message||''}</div>
-    <div style="margin-top:6px">نتيجتك: <strong>${score}</strong> من <strong>${total}</strong> — (<strong>${pct}%</strong>)</div>
-    <div class="${passed?'pass':'fail'}" style="margin-top:8px;font-size:18px;font-weight:800">${passed?'ناجح 🎉':'راسب • أرجع ذاكر'}</div>`;
-  const rows=QUESTIONS.map((q,i)=>{ const your=userAnswers[i]!=null?q.choices[userAnswers[i]]:'—'; const ok=q.choices[q.correctIndex]; const okCls=(userAnswers[i]===q.correctIndex)?'correctAns':'wrongAns'; return `<div><strong>س${i+1}:</strong> ${q.text}<br>إجابتك: <span class="${okCls}">${your}</span><br>الصحيحة: <span class="correctAns">${ok}</span></div>`; }).join('<hr>');
+  finalBox.innerHTML=`<div>${message}</div><div style="margin-top:6px">نتيجتك: <strong>${score}</strong> من <strong>${total}</strong> — (<strong>${pct}%</strong>)</div><div class="${passed?'pass':'fail'}" style="margin-top:8px;font-size:18px;font-weight:800">${passed?'ناجح 🎉':'راسب • أرجع ذاكر'}</div>`;
+  const rows=QUESTIONS.map((q,i)=>{ const your=userAnswers[i]!=null?q.choices[userAnswers[i]]:'—'; const ok=q.choices[q.correctIndex]; const okCls=(userAnswers[i]===q.correctIndex)?'pass':'fail'; return `<div><strong>س${i+1}:</strong> ${q.text}<br>إجابتك: <span class="${okCls}">${your}</span><br>الصحيحة: <span class="pass">${ok}</span></div>`; }).join('<hr>');
   reviewBox.classList.remove('hidden'); reviewBox.innerHTML='<h3>مراجعة الإجابات:</h3>'+rows;
-  renderQNav(true); nextBtn.disabled=true; restartBtn.classList.remove('hidden'); restartBtn.onclick=()=>{ show('start'); updatePaymentUI(); };
+  nextBtn.disabled=true; restartBtn.classList.remove('hidden'); restartBtn.onclick=restart;
 }
 
-/* التالي */
-nextBtn.addEventListener('click', ()=>{ if(finished)return; if(userAnswers[idx]==null)return; idx++; if(idx<QUESTIONS.length){ loadQuestion(); renderQNav(); } else endQuiz("انتهيت من جميع الأسئلة 🎉"); });
+nextBtn.addEventListener('click', nextQuestion);
+goToQuiz.addEventListener('click', begin);
 
-/* بدء الاختبار — يتطلب تسجيل + دفع مفعّل */
-goToQuiz.addEventListener('click', ()=>{
-  if(!requireLogin()) return;
-  if(!hasActivePurchase()) { showToast('أكمل الدفع أولاً'); return; }
-  show('quiz'); showHUD();
-  finalBox.classList.add('hidden'); reviewBox.classList.add('hidden');
-  idx=0; score=0; finished=false; userAnswers=new Array(QUESTIONS.length).fill(null); scoreEl.textContent=score;
-  renderQNav(); loadQuestion(); startTimer();
-});
-
-/* ——— الدفع (واجهة فقط الآن) ——— */
-const payBtn=document.getElementById('payBtn');
-const payStatus=document.getElementById('payStatus');
-
-function hasActivePurchase(){
-  const p = JSON.parse(localStorage.getItem('purchase') || 'null');
-  const email = localStorage.getItem('userEmail');
-  if(!p || !email) return false;
-  return p.email === email && new Date(p.expires_at).getTime() > Date.now();
-}
-function updatePaymentUI(){
-  // تفعيل/تعطيل زر البدء حسب حالة الشراء
-  if(hasActivePurchase()){
-    payBtn.style.display='none';
-    payStatus.textContent='مدفوع — لديك محاولة فعالة الآن.';
-    document.getElementById('goToQuiz').disabled=false;
-  }else{
-    payBtn.style.display='inline-block';
-    payStatus.textContent='غير مدفوع — تحتاج تسديد 9 ريال لتفعيل محاولة واحدة (صالحة لمدة العدّ).';
-    document.getElementById('goToQuiz').disabled=true;
-  }
-}
-
+/* ====== الدفع الحقيقي عبر Stripe Checkout (Sandbox الآن) ====== */
 payBtn.addEventListener('click', async ()=>{
   if(!requireLogin()) return;
-  // حالياً فقط عرض واجهة — لاحقاً سنحوّل لصفحة الدفع Stripe/HyperPay
-  showToast('سيتم تحويلك لصفحة الدفع عند الربط…');
-});
-
-/* تسجيل الدخول */
-function applyPreviewIfAny(){
-  const url=new URL(window.location.href);
-  if(url.searchParams.get('preview')==='1'){
-    const email=localStorage.getItem('userEmail');
-    if(email){
-      const expires = new Date(Date.now() + (80*60*1000)).toISOString();
-      localStorage.setItem('purchase', JSON.stringify({ email, expires_at: expires }));
-      updatePaymentUI();
-      showToast('وضع المعاينة: تم تفعيل الدفع مؤقتًا');
+  try{
+    payBtn.disabled = true;
+    const email = localStorage.getItem('userEmail');
+    const res = await fetch('/api/create-checkout-session', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ email })
+    });
+    const data = await res.json().catch(()=> ({}));
+    if(res.ok && data.url){
+      window.location.href = data.url; // تحويل إلى Stripe
+    }else{
+      showToast(data.error || 'تعذّر إنشاء جلسة الدفع');
+      payBtn.disabled = false;
     }
+  }catch(e){
+    showToast('تعذّر الاتصال بالخادم. تأكد من وجود api/create-checkout-session.js');
+    payBtn.disabled = false;
   }
-}
-
-/* Login handlers */
-document.getElementById('loginTopBtn').addEventListener('click', ()=> show('login'));
-document.getElementById('loginBtn').addEventListener('click', ()=>{
-  const email=(emailInput.value||'').trim();
-  if(!isValidEmail(email)){ loginError.classList.remove('hidden'); return; }
-  loginError.classList.add('hidden');
-  localStorage.setItem('userEmail', email);
-  updateAuthUI();
-  updatePaymentUI();
-  applyPreviewIfAny();
-  show('start');
-  showToast('تم تسجيل الدخول');
 });
+
+/* ====== التحقق بعد الرجوع من Stripe ====== */
+(async function handleReturnFromStripe(){
+  const p = new URLSearchParams(location.search);
+  const sessionId = p.get('checkout_session_id');
+  if(!sessionId) return;
+  // نظّف الاستعلام من الرابط بعد المعالجة
+  history.replaceState({}, '', location.pathname);
+
+  try{
+    const res = await fetch('/api/verify-session',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ session_id: sessionId })
+    });
+    const data = await res.json();
+    if(res.ok && data.paid){
+      // خزّن صلاحية المحاولة 80 دقيقة
+      localStorage.setItem('purchase', JSON.stringify({
+        email: data.email || localStorage.getItem('userEmail'),
+        expires_at: data.expires_at
+      }));
+      showToast('تم الدفع وتفعيل المحاولة ✅');
+      document.getElementById('goToQuiz').disabled = false;
+    }else{
+      showToast('لم يكتمل الدفع');
+    }
+  }catch(e){
+    showToast('تعذّر التحقق من الجلسة');
+  }
+})();
 
 /* init */
-function init(){
-  updateAuthUI();
-  updatePaymentUI();
-  if(isLoggedIn()) show('start'); else show('login');
-  applyPreviewIfAny();
-}
-init();
+updateAuthUI();
+show('start');
+// فعّل زر البدء إن كانت المحاولة لا تزال سارية
+(function(){
+  const purch = JSON.parse(localStorage.getItem('purchase')||'null');
+  const ok = purch && (Date.now() < (new Date(purch.expires_at)).getTime());
+  document.getElementById('goToQuiz').disabled = !ok;
+})();
 </script>
 </body>
 </html>
