@@ -8,6 +8,15 @@
   :root{ --bg:#f9fafb; --card:#fff; --muted:#6b7280; --text:#1f2937; --brand:#3b82f6; --border:rgba(0,0,0,.12);}
   *{box-sizing:border-box}
   body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
+  a{color:inherit; text-decoration:none}
+  header{position:sticky; top:0; z-index:60; backdrop-filter: blur(10px); background: color-mix(in srgb, var(--bg) 95%, transparent); border-bottom:1px solid var(--border)}
+  .topbar{max-width:1100px; margin:auto; padding:10px 16px; display:flex; align-items:center; gap:12px}
+  .logo{width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg,var(--brand),#60a5fa)}
+  .brand{font-weight:800}
+  .spacer{flex:1}
+  .nav a, .nav button{padding:8px 10px; border-radius:10px; border:1px solid transparent; background:transparent; cursor:pointer; color:inherit; font:inherit}
+  .nav a.active, .nav a:hover, .nav button:hover{border-color:var(--border); background:rgba(0,0,0,.04)}
+
   .container{max-width:1100px; margin:16px auto; padding:0 16px}
   .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,.08)}
   .grid{display:grid; gap:12px; grid-template-columns:1fr 1fr}
@@ -17,7 +26,7 @@
   .btn.primary{background:linear-gradient(135deg,var(--brand),#60a5fa); color:#fff; font-weight:800; border-color:transparent}
   .hidden{display:none!important}
 
-  /* المؤقت + الهِدز */
+  /* HUD */
   .timer{position:fixed; top:14px; inset-inline-end:14px; z-index:55; background:#fff; border:1px solid var(--border); border-radius:12px; padding:8px 12px; font-weight:800; min-width:140px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.08)}
   .infochips{position:fixed; bottom:14px; inset-inline-start:14px; z-index:55; display:flex; gap:8px; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:12px; padding:8px 12px; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,.08)}
   .chip{background:#f3f4f6; border:1px solid var(--border); border-radius:999px; padding:4px 10px; font-size:14px}
@@ -56,33 +65,47 @@
 </style>
 </head>
 <body>
+
+<header>
+  <div class="topbar">
+    <div class="logo" aria-hidden="true"></div>
+    <div class="brand">منصة محاكاة الاختبارات</div>
+    <div class="spacer"></div>
+    <nav class="nav">
+      <a href="#" id="navHome" class="active">الرئيسية</a>
+      <a href="#" id="navResults">لوحة النتائج</a>
+      <button id="navLogin">تسجيل الدخول</button>
+    </nav>
+  </div>
+</header>
+
 <div class="container">
   <!-- تسجيل الدخول -->
-  <section id="page-login" class="page">
+  <section id="page-login" class="page hidden">
     <div class="login-wrap">
       <div class="card login-form">
         <h2>تسجيل الدخول</h2>
         <label>البريد الإلكتروني
           <input id="emailInput" type="email" class="input" placeholder="name@example.com" autocomplete="email" required>
         </label>
-        <div class="hint">يمكنك التصفح بحرية، لكن لبدء الاختبار يجب تسجيل الدخول.</div>
+        <div class="hint">ستدخل فورًا ويُحفظ سجلك باسم هذا البريد.</div>
         <div id="loginError" class="error-msg hidden">فضلاً أدخل بريدًا صحيحًا.</div>
         <button id="loginBtn" class="btn primary" type="button">تسجيل الدخول</button>
       </div>
     </div>
   </section>
 
-  <!-- البداية -->
-  <section id="page-start" class="page hidden">
+  <!-- الرئيسية -->
+  <section id="page-start" class="page">
     <div class="grid">
       <div class="card">
         <h2 style="margin:0 0 6px">ابدأ الاختبار</h2>
-        <p class="muted">يبدأ العدّ التنازلي (01:20:00) ويُفتح الاختبار.</p>
+        <p class="muted">عند الضغط يبدأ العدّ التنازلي (01:20:00) وتُفتح لوحة الاختبار.</p>
         <button class="btn primary" id="goToQuiz">ابدأ الآن</button>
       </div>
       <div class="card">
-        <h3>لماذا هذه المنصّة؟</h3>
-        <p class="muted">أسئلة نظرية ومسائل محاسبية، مؤقت، مراجعة إجابات، وواجهة RTL عربية.</p>
+        <h3>عن المنصّة</h3>
+        <p class="muted">أسئلة نظرية ومسائل محاسبية، مؤقّت، مراجعة إجابات، وحفظ النتائج حسب بريدك.</p>
       </div>
     </div>
   </section>
@@ -114,6 +137,17 @@
       </div>
     </div>
   </section>
+
+  <!-- لوحة النتائج (تعرض آخر نتيجة محفوظة) -->
+  <section id="page-results" class="page hidden">
+    <div class="card">
+      <h2 style="margin:0 0 6px">لوحة النتائج</h2>
+      <p class="muted" id="resultsHint">تعرض آخر محاولة بناءً على بريدك.</p>
+      <div id="lastResultBox" class="final hidden"></div>
+      <div id="lastReviewBox" class="review hidden"></div>
+      <div id="noResults" class="muted">لا توجد نتائج بعد… ابدأ اختبارًا ثم ارجع هنا.</div>
+    </div>
+  </section>
 </div>
 
 <div id="toast" class="toast hidden">—</div>
@@ -121,14 +155,20 @@
 <!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* Supabase config — استبدل إذا لزم */
+/* Supabase config (مفاتيحك) */
 const SUPABASE_URL  = "https://ryafsydlamazuofjdxvm.supabase.co";
 const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5YWZzeWRsYW1henVvZmpkeHZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2ODY3MDksImV4cCI6MjA3NDI2MjcwOX0.so8wQhS3VKSGLSgn5NSpqokw0RU_M7QIuWwnhJ1rEhs";
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* صفحات */
-const pages={login:document.getElementById('page-login'),start:document.getElementById('page-start'),quiz:document.getElementById('page-quiz')};
+/* الصفحات */
+const pages={login:document.getElementById('page-login'),start:document.getElementById('page-start'),quiz:document.getElementById('page-quiz'),results:document.getElementById('page-results')};
 function show(name){ Object.values(pages).forEach(p=>p.classList.add('hidden')); pages[name].classList.remove('hidden'); if(name!=='quiz') hideHUD(); }
+const navHome=document.getElementById('navHome');
+const navResults=document.getElementById('navResults');
+const navLogin=document.getElementById('navLogin');
+navHome.addEventListener('click',(e)=>{e.preventDefault();show('start');});
+navResults.addEventListener('click',async (e)=>{e.preventDefault();await loadLastResult();show('results');});
+navLogin.addEventListener('click',(e)=>{e.preventDefault();show('login');});
 
 /* عناصر الدخول */
 const emailInput=document.getElementById('emailInput');
@@ -139,9 +179,8 @@ const toast=document.getElementById('toast');
 function showToast(msg){ toast.textContent=msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), 2000); }
 function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 function isLoggedIn(){ return !!localStorage.getItem('userEmail'); }
-function updateAuthUI(){}
 
-/* عناصر الاختبار */
+/* HUD الاختبار */
 const goToQuiz=document.getElementById('goToQuiz');
 const timerEl=document.getElementById('timer');
 const infochips=document.getElementById('infochips');
@@ -156,14 +195,13 @@ const nextBtn=document.getElementById('nextBtn');
 const restartBtn=document.getElementById('restartBtn');
 const qpanel=document.getElementById('qpanel');
 const qnav=document.getElementById('qnav');
-
 function showHUD(){ timerEl.classList.remove('hidden'); infochips.classList.remove('hidden'); qpanel.classList.remove('hidden'); }
 function hideHUD(){ timerEl.classList.add('hidden'); infochips.classList.add('hidden'); qpanel.classList.add('hidden'); }
 
 /* العدّ التنازلي: 80 دقيقة */
 const INITIAL_SECONDS = 80 * 60;
 
-/* سؤال واحد للتجربة (ما غيّرته) */
+/* سؤال تجريبي */
 const QUESTIONS=[{ text:"[نظري] أي الجمل أدق عن القسط الثابت؟", choices:["يستهلك قيمة الأصل بالكامل بغض النظر عن المتبقي","قسط سنوي = (التكلفة - المتبقي) ÷ العمر","لا يتأثر بأي تغيير تقدير","لا يجوز استخدامه للأصول الإنتاجية"], correctIndex:1 }];
 
 let userEmail=null, idx=0, userAnswers=[], score=0;
@@ -176,16 +214,14 @@ function tick(){ remaining--; if(remaining<=0){ remaining=0; stopTimer(); endQui
 function startTimer(){ remaining=INITIAL_SECONDS; updateTimerUI(); stopTimer(); intervalId=setInterval(tick,1000); }
 function stopTimer(){ if(intervalId){ clearInterval(intervalId); intervalId=null; } }
 
-/* تسجيل الدخول بالبريد فقط */
+/* تسجيل الدخول */
 loginBtn.addEventListener('click', async ()=>{
   const email=(emailInput.value||'').trim();
   if(!isValidEmail(email)){ loginError.classList.remove('hidden'); return; }
   loginError.classList.add('hidden');
-  userEmail=email;
-  localStorage.setItem('userEmail', email);
-  // اختياري: إنشاء ملف مستخدم
+  userEmail=email; localStorage.setItem('userEmail', email);
   try{ await supa.from('profiles_open').upsert({ email }); }catch(e){}
-  show('start');
+  show('start'); showToast('تم تسجيل الدخول');
 });
 
 /* بدء الاختبار */
@@ -235,29 +271,73 @@ nextBtn.addEventListener('click', ()=>{
   else endQuiz("انتهيت من جميع الأسئلة 🎉");
 });
 
-/* إنهاء + حفظ نتيجة */
+/* إنهاء + حفظ + تجهيز صفحة النتائج */
 async function endQuiz(message){
   finished=true; stopTimer();
   score = userAnswers.reduce((acc,ans,i)=> acc + ((ans===QUESTIONS[i].correctIndex)?1:0), 0);
   scoreEl.textContent=score;
   const total=QUESTIONS.length, pct=Math.round((score/total)*100), passed=pct>=60;
+
   finalBox.classList.remove('hidden');
   finalBox.innerHTML=`<div>${message||''}</div><div style="margin-top:6px">نتيجتك: <strong>${score}</strong> من <strong>${total}</strong> — (<strong>${pct}%</strong>)</div><div class="${passed?'pass':'fail'}" style="margin-top:8px;font-size:18px;font-weight:800">${passed?'ناجح 🎉':'راسب • أرجع ذاكر'}</div>`;
+
   const rows=QUESTIONS.map((q,i)=>{ const your=userAnswers[i]!=null?q.choices[userAnswers[i]]:'—'; const ok=q.choices[q.correctIndex]; const okCls=(userAnswers[i]===q.correctIndex)?'correctAns':'wrongAns'; return `<div><strong>س${i+1}:</strong> ${q.text}<br>إجابتك: <span class="${okCls}">${your}</span><br>الصحيحة: <span class="correctAns">${ok}</span></div>`; }).join('<hr>');
   reviewBox.classList.remove('hidden'); reviewBox.innerHTML='<h3>مراجعة الإجابات:</h3>'+rows;
-  renderQNav(true); nextBtn.disabled=true; restartBtn.classList.remove('hidden'); restartBtn.onclick=()=>{ stopTimer(); show('start'); };
+
+  renderQNav(true); nextBtn.disabled=true; restartBtn.classList.remove('hidden'); restartBtn.onclick=()=>{ show('start'); };
 
   if(userEmail){
     try{
-      const payload = QUESTIONS.map((q,i)=>({
-        q: q.text, your: userAnswers[i]!=null ? q.choices[userAnswers[i]] : null, correct: q.choices[q.correctIndex], isCorrect: userAnswers[i]===q.correctIndex
-      }));
-      await supa.from('results_open').insert({ email:userEmail, score, total, percent:pct, details:payload });
+      const details = QUESTIONS.map((q,i)=>({q:q.text,your:userAnswers[i]!=null?q.choices[userAnswers[i]]:null,correct:q.choices[q.correctIndex],isCorrect:userAnswers[i]===q.correctIndex}));
+      await supa.from('results_open').insert({ email:userEmail, score, total, percent:pct, details });
     }catch(e){ console.warn('save result error', e?.message||e); }
   }
 }
 
-/* تهيئة */
+/* صفحة النتائج: جلب آخر محاولة */
+async function loadLastResult(){
+  const box = document.getElementById('lastResultBox');
+  const rev = document.getElementById('lastReviewBox');
+  const empty = document.getElementById('noResults');
+  box.classList.add('hidden'); rev.classList.add('hidden'); empty.classList.remove('hidden');
+
+  const email = localStorage.getItem('userEmail');
+  if(!email){ document.getElementById('resultsHint').textContent='سجّل دخول بالبريد لعرض نتائجك.'; return; }
+
+  document.getElementById('resultsHint').textContent='تعرض آخر محاولة لبريدك: ' + email;
+
+  const { data, error } = await supa
+    .from('results_open')
+    .select('score,total,percent,details,created_at')
+    .eq('email', email)
+    .order('created_at', { ascending: false })
+    .limit(1);
+  if(error || !data || data.length===0) return;
+
+  const row = data[0];
+  const pct = Math.round(Number(row.percent ?? (row.total? (row.score/row.total*100) : 0)));
+  const passed = pct >= 60;
+
+  box.innerHTML = `<div>تاريخ المحاولة: ${new Date(row.created_at).toLocaleString('ar-SA')}</div>
+                   <div style="margin-top:6px">نتيجتك: <strong>${row.score}</strong> من <strong>${row.total}</strong> — (<strong>${pct}%</strong>)</div>
+                   <div class="${passed?'pass':'fail'}" style="margin-top:8px;font-size:18px;font-weight:800">${passed?'ناجح 🎉':'راسب'}</div>`;
+  box.classList.remove('hidden');
+
+  let details = row.details;
+  try{ if(typeof details === 'string') details = JSON.parse(details); }catch(_){}
+  if(Array.isArray(details) && details.length){
+    const html = details.map((d,i)=>`
+      <div><strong>س${i+1}:</strong> ${d.q}<br>
+      إجابتك: <span class="${d.isCorrect?'correctAns':'wrongAns'}">${d.your ?? '—'}</span><br>
+      الصحيحة: <span class="correctAns">${d.correct}</span></div>
+    `).join('<hr>');
+    rev.innerHTML = '<h3>مراجعة الإجابات:</h3>'+html;
+    rev.classList.remove('hidden');
+  }
+  empty.classList.add('hidden');
+}
+
+/* بدء الصفحة */
 if(isLoggedIn()){ show('start'); } else { show('login'); }
 </script>
 </body>
