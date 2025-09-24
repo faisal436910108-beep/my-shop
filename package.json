@@ -1,0 +1,8 @@
+{
+  "name": "my-shop",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "stripe": "^12.18.0"
+  }
+}
