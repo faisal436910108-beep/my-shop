@@ -74,11 +74,11 @@
   .login-wrap{display:grid; place-items:center; min-height:60vh}
   .login-form{display:grid; gap:12px; max-width:420px; width:100%}
   .input{width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:#fff; font-size:16px}
-  .hint{font-size:13px; color:var(--muted)}
+  .hint{font-size:13px; color:#6b7280}
   .error-msg{color:#dc2626; font-weight:700; font-size:14px}
   .toast{position:fixed; top:80px; inset-inline-start:50%; transform:translateX(-50%); background:#fff; color:#111827; border:1px solid var(--border); padding:10px 14px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.08); z-index:70}
 
-  /* History (سجل نتائجي) */
+  /* History */
   .table{width:100%; border-collapse:collapse; font-size:14px}
   .table th, .table td{border-bottom:1px solid var(--border); padding:10px; text-align:start}
   .table th{background:#f3f4f6; color:#111827; position:sticky; top:0}
@@ -95,11 +95,11 @@
   }
 </style>
 
-<!-- Supabase SDK + التهيئة (بدّل القيم) -->
+<!-- Supabase SDK + القيم التي زودتني بها -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const SUPABASE_URL  = "https://ryafsydlamazuofjdxvm.supabase.co";       // <-- غيّرها
-  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5YWZzeWRsYW1henVvZmpkeHZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2ODY3MDksImV4cCI6MjA3NDI2MjcwOX0.so8wQhS3VKSGLSgn5NSpqokw0RU_M7QIuWwnhJ1rEhs";                    // <-- غيّرها
+  const SUPABASE_URL  = "https://ryafsydlamazuofjdxvm.supabase.co";
+  const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5YWZzeWRsYW1henVvZmpkeHZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2ODY3MDksImV4cCI6MjA3NDI2MjcwOX0.so8wQhS3VKSGLSgn5NSpqokw0RU_M7QIuWwnhJ1rEhs";
   const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 </script>
 
@@ -201,7 +201,6 @@
       <h2 style="margin:0 0 10px">سجل نتائجي</h2>
       <p class="muted" id="histHint">يعرض آخر محاولاتك بعد تسجيل الدخول.</p>
 
-      <!-- جدول للشاشات الكبيرة -->
       <div class="hist-table">
         <table class="table" id="historyTable">
           <thead>
@@ -218,7 +217,6 @@
         </table>
       </div>
 
-      <!-- بطاقات للشاشات الصغيرة -->
       <div class="hist-cards" id="historyCards"></div>
     </div>
   </section>
@@ -256,11 +254,19 @@ function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 
 /* ====== Magic Link ====== */
 async function loginWithEmail(email){
-  const { error } = await supa.auth.signInWithOtp({
-    email,
-    options: { emailRedirectTo: window.location.origin }
-  });
-  if (error) throw error;
+  const redirect = window.location.origin; // لازم تضيفه في Auth → URL Configuration → Redirect URLs
+  try{
+    const { error } = await supa.auth.signInWithOtp({
+      email,
+      options: { shouldCreateUser: true, emailRedirectTo: redirect }
+    });
+    if (error) throw error;
+  }catch(e){
+    const msg = (e && e.message) ? e.message : 'Network/CORS';
+    loginError.classList.remove('hidden');
+    loginError.textContent = 'خطأ: ' + msg;
+    throw e;
+  }
 }
 
 /* ====== تحديث واجهة حسب الجلسة ====== */
@@ -270,7 +276,6 @@ async function refreshAuthUI(){
     userChip.classList.remove('hidden');
     loginTopBtn.classList.add('hidden');
     userEmailText.textContent = user.email || '—';
-    // تأكد وجود بروفايل
     await supa.from('profiles').upsert({ id: user.id, full_name: null });
   } else {
     userChip.classList.add('hidden');
@@ -279,7 +284,7 @@ async function refreshAuthUI(){
 }
 
 /* مراقبة الحالة */
-supa.auth.onAuthStateChange(async (_evt, _session)=>{ await refreshAuthUI(); });
+supa.auth.onAuthStateChange(async ()=>{ await refreshAuthUI(); });
 
 /* أزرار */
 loginTopBtn?.addEventListener('click', ()=> show('login'));
@@ -287,26 +292,18 @@ sendLinkBtn?.addEventListener('click', async ()=>{
   const email = (emailInput.value||'').trim();
   if(!isValidEmail(email)){ loginError.classList.remove('hidden'); emailInput.focus(); return; }
   loginError.classList.add('hidden');
-  try{
-    await loginWithEmail(email);
-    showToast('تم إرسال رابط تسجيل الدخول إلى بريدك');
-  }catch(e){
-    loginError.classList.remove('hidden');
-    loginError.textContent = 'خطأ: '+e.message;
-  }
+  try{ await loginWithEmail(email); showToast('تم إرسال رابط تسجيل الدخول إلى بريدك'); }
+  catch(e){ /* تم عرض الخطأ فوق */ }
 });
 logoutBtn?.addEventListener('click', async ()=>{
   await supa.auth.signOut();
-  stopTimer?.();
-  hideHUD?.();
-  show('login');
-  showToast('تم تسجيل الخروج');
+  stopTimer?.(); hideHUD?.();
+  show('login'); showToast('تم تسجيل الخروج');
 });
 historyTopBtn?.addEventListener('click', async ()=>{
   const ok = await requireAuthOrRedirect();
   if(!ok) return;
-  show('history');
-  loadMyResults();
+  show('history'); loadMyResults();
 });
 
 /* ====== حماية البدء ====== */
@@ -387,7 +384,7 @@ function loadQuestion(){
 }
 function nextQuestion(){ if(finished) return; if(userAnswers[idx]==null) return; idx++; if(idx<QUESTIONS.length){ loadQuestion(); renderQNav(); } else endQuiz("انتهيت من جميع الأسئلة 🎉"); }
 
-/* حفظ النتيجة في Supabase (آمن تحت RLS) */
+/* حفظ النتيجة في Supabase */
 async function saveResultToDB({ score, total, reviewDetails }){
   const { data: { user } } = await supa.auth.getUser();
   if(!user) return;
@@ -411,7 +408,7 @@ function endQuiz(message){
   reviewBox.classList.remove('hidden'); reviewBox.innerHTML='<h3>مراجعة الإجابات:</h3>'+rows;
   renderQNav(true); nextBtn.disabled=true; restartBtn.classList.remove('hidden'); restartBtn.onclick=restart;
 
-  // احفظ النتيجة مع التفاصيل
+  // احفظ
   try{
     const payload = QUESTIONS.map((q,i)=>({
       q: q.text,
@@ -430,12 +427,6 @@ async function loadMyResults(){
   tbody.innerHTML = `<tr><td colspan="4" class="muted">جاري التحميل…</td></tr>`;
   cards.innerHTML = '';
 
-  const { data: { user } } = await supa.auth.getUser();
-  if(!user){
-    tbody.innerHTML = `<tr><td colspan="4" class="muted">سجّل الدخول لعرض النتائج.</td></tr>`;
-    return;
-  }
-
   const { data, error } = await supa
     .from('results')
     .select('score,total,percent,created_at')
@@ -447,13 +438,11 @@ async function loadMyResults(){
     console.error(error.message);
     return;
   }
-
   if (!data || data.length===0){
     tbody.innerHTML = `<tr><td colspan="4" class="muted">لا توجد محاولات بعد…</td></tr>`;
     return;
   }
 
-  // جدول
   tbody.innerHTML = '';
   data.forEach(row=>{
     const pct = Math.round(Number(row.percent ?? (row.total? (row.score/row.total*100) : 0)));
@@ -468,7 +457,6 @@ async function loadMyResults(){
     tbody.appendChild(tr);
   });
 
-  // بطاقات للجوال
   data.forEach(row=>{
     const pct = Math.round(Number(row.percent ?? (row.total? (row.score/row.total*100) : 0)));
     const pass = pct >= 60;
@@ -495,4 +483,3 @@ nextBtn.addEventListener('click', nextQuestion);
 </script>
 </body>
 </html>
-
