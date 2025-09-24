@@ -1,35 +1,35 @@
-// api/create-checkout-session.js
-import Stripe from "stripe";
+import Stripe from 'stripe';
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY, { apiVersion: "2022-11-15" });
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") return res.status(405).send("Method Not Allowed");
+  if (req.method !== 'POST') {
+    return res.status(405).json({ error: 'Method not allowed' });
+  }
 
   try {
-    const { email } = req.body;
-    if (!email) return res.status(400).json({ error: "Missing email" });
-
-    const domain = process.env.PUBLIC_DOMAIN || (req.headers.origin || `https://${req.headers.host}`);
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ["card"], // Apple Pay/Google Pay تُفعّل تلقائيًا في Checkout
-      mode: "payment",
-      line_items: [{
-        price_data: {
-          currency: "sar",
-          product_data: { name: "محاولة الاختبار - سعر الدخول" },
-          unit_amount: 9 * 100, // 9 SAR
+      payment_method_types: ['card'],
+      mode: 'payment',
+      line_items: [
+        {
+          price_data: {
+            currency: 'sar',
+            product_data: {
+              name: 'محاولة اختبار واحدة',
+            },
+            unit_amount: 900, // السعر بالهللة (9 ريال)
+          },
+          quantity: 1,
         },
-        quantity: 1
-      }],
-      customer_email: email,
-      success_url: `${domain}/?checkout_session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${domain}/?canceled=1`
+      ],
+      success_url: `${req.headers.origin}/index.html?success=true`,
+      cancel_url: `${req.headers.origin}/index.html?canceled=true`,
     });
 
-    return res.json({ url: session.url });
+    res.status(200).json({ id: session.id });
   } catch (err) {
     console.error(err);
-    return res.status(500).json({ error: err.message });
+    res.status(500).json({ error: 'فشل إنشاء جلسة الدفع' });
   }
 }
