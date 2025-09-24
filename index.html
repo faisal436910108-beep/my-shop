@@ -162,12 +162,26 @@ const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
 /* الصفحات */
 const pages={login:document.getElementById('page-login'),start:document.getElementById('page-start'),quiz:document.getElementById('page-quiz'),results:document.getElementById('page-results')};
-function show(name){ Object.values(pages).forEach(p=>p.classList.add('hidden')); pages[name].classList.remove('hidden'); if(name!=='quiz') hideHUD(); }
+function show(name){
+  // حماية: لا تسمح بفتح صفحة الاختبار أو النتائج بدون تسجيل
+  if ((name === 'quiz' || name === 'results') && !isLoggedIn()) {
+    name = 'login';
+    showToast('سجّل دخول بالبريد للمتابعة');
+  }
+  Object.values(pages).forEach(p=>p.classList.add('hidden'));
+  pages[name].classList.remove('hidden');
+  if(name!=='quiz') hideHUD();
+}
 const navHome=document.getElementById('navHome');
 const navResults=document.getElementById('navResults');
 const navLogin=document.getElementById('navLogin');
 navHome.addEventListener('click',(e)=>{e.preventDefault();show('start');});
-navResults.addEventListener('click',async (e)=>{e.preventDefault();await loadLastResult();show('results');});
+navResults.addEventListener('click',async (e)=>{
+  e.preventDefault();
+  if (!requireLogin()) return;
+  await loadLastResult();
+  show('results');
+});
 navLogin.addEventListener('click',(e)=>{e.preventDefault();show('login');});
 
 /* عناصر الدخول */
@@ -179,6 +193,15 @@ const toast=document.getElementById('toast');
 function showToast(msg){ toast.textContent=msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), 2000); }
 function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 function isLoggedIn(){ return !!localStorage.getItem('userEmail'); }
+// ✅ دالة تُجبر على تسجيل الدخول
+function requireLogin() {
+  if (!isLoggedIn()) {
+    show('login');
+    showToast('سجّل دخول بالبريد للمتابعة');
+    return false;
+  }
+  return true;
+}
 
 /* HUD الاختبار */
 const goToQuiz=document.getElementById('goToQuiz');
@@ -226,7 +249,7 @@ loginBtn.addEventListener('click', async ()=>{
 
 /* بدء الاختبار */
 goToQuiz.addEventListener('click', ()=>{
-  if(!isLoggedIn()){ show('login'); showToast('سجّل دخول بالبريد'); return; }
+  if (!requireLogin()) return;               // ✅ منع البدء دون تسجيل
   userEmail = localStorage.getItem('userEmail');
   show('quiz'); showHUD();
   finalBox.classList.add('hidden'); reviewBox.classList.add('hidden');
@@ -337,8 +360,12 @@ async function loadLastResult(){
   empty.classList.add('hidden');
 }
 
-/* بدء الصفحة */
-if(isLoggedIn()){ show('start'); } else { show('login'); }
+/* تهيئة أولية + حماية الهاش */
+if (isLoggedIn()) { show('start'); } else { show('login'); }
+if (location.hash === '#quiz' || location.hash === '#results') {
+  if (!requireLogin()) location.hash = '#login';
+  else show(location.hash.slice(1));
+}
 </script>
 </body>
 </html>
