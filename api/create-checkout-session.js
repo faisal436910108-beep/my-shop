@@ -1,52 +1,40 @@
-import Stripe from "stripe";
+const Stripe = require('stripe');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
-export default async function handler(req, res) {
-  // 1) تأكد أن الطلب POST
-  if (req.method !== "POST") {
-    res.setHeader("Allow", "POST");
-    return res.status(405).end("Method Not Allowed");
+module.exports = async function (req, res) {
+  if (req.method !== 'POST') {
+    res.status(405).json({ error: 'Method not allowed' });
+    return;
   }
 
-  // 2) التحقق من توفر المفتاح من البيئة
-  const secret = process.env.STRIPE_SECRET_KEY;
-  console.log(
-    "HAS_STRIPE_SECRET_KEY?",
-    !!secret,
-    secret ? `prefix=${secret.slice(0, 7)}...` : "(none)"
-  );
-
-  if (!secret) {
-    // لو المفتاح مش موجود، أرجع رسالة واضحة بدل ما نخلي Stripe يرمي AuthenticationError
-    return res
-      .status(500)
-      .json({ error: "Missing STRIPE_SECRET_KEY on server (env var not set)." });
+  if (!process.env.STRIPE_SECRET_KEY) {
+    res.status(500).json({ error: 'Missing STRIPE_SECRET_KEY on server (env var not set).' });
+    return;
   }
-
-  // 3) أنشئ Stripe مع تحديد نسخة الـ API (مهم للاستقرار)
-  const stripe = new Stripe(secret, { apiVersion: "2024-06-20" });
 
   try {
-    // 4) إنشاء جلسة Checkout لسعر 9 ريال (بالهللات)
+    const { amount, currency } = req.body;
     const session = await stripe.checkout.sessions.create({
-      mode: "payment",
-      payment_method_types: ["card"],
+      payment_method_types: ['card'],
       line_items: [
         {
           price_data: {
-            currency: "sar", // SAR للريال السعودي
-            product_data: { name: "محاولة اختبار" },
-            unit_amount: 900, // 9 ريال = 900 هللة
+            currency: currency || 'usd',
+            product_data: {
+              name: 'Test Product',
+            },
+            unit_amount: amount || 1000,
           },
           quantity: 1,
         },
       ],
-      success_url: `${req.headers.origin}/results.html?success=true`,
-      cancel_url: `${req.headers.origin}/results.html?canceled=true`,
+      mode: 'payment',
+      success_url: `${req.headers.origin}/success`,
+      cancel_url: `${req.headers.origin}/cancel`,
     });
 
-    return res.status(200).json({ id: session.id });
-  } catch (err) {
-    console.error("Stripe error:", err);
-    return res.status(500).json({ error: err.message || "Stripe error" });
+    res.status(200).json({ id: session.id, url: session.url });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
-}
+};
