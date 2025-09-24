@@ -15,7 +15,6 @@ export default async function handler(req, res) {
 
   try {
     let body = req.body;
-    // إذا جاء body كسلسلة نصية (string) حوله إلى JSON
     if (typeof body === 'string') {
       body = JSON.parse(body);
     }
@@ -40,7 +39,8 @@ export default async function handler(req, res) {
 
     res.status(200).json({ id: session.id, url: session.url });
   } catch (error) {
-    console.error(error); // مهم لفحص الأخطاء في Vercel
+    // اطبع الخطأ حتى يظهر في لوج Vercel
+    console.error("STRIPE ERROR:", error);
     res.status(500).json({ error: error.message });
   }
 }
