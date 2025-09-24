@@ -14,32 +14,38 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Vercel: body قد يكون JSON أو string
     let body = req.body;
     if (typeof body === 'string') {
       body = JSON.parse(body);
     }
 
-    const { amount, currency } = body || {};
+    const email = body?.email || '';
+    // ثمن المحاولة (9 ريال بالهللة)
+    const amount = 9 * 100;
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
+      customer_email: email,
       line_items: [
         {
           price_data: {
-            currency: currency || 'usd',
-            product_data: { name: 'Test Product' },
-            unit_amount: amount || 1000,
+            currency: 'sar',
+            product_data: {
+              name: 'محاكاة اختبار محاسبة (محاولة واحدة)',
+            },
+            unit_amount: amount,
           },
           quantity: 1,
         },
       ],
       mode: 'payment',
-      success_url: `${req.headers.origin}/success`,
-      cancel_url: `${req.headers.origin}/cancel`,
+      success_url: `${req.headers.origin}/index.html?checkout_session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${req.headers.origin}/index.html?cancelled=1`,
     });
 
     res.status(200).json({ id: session.id, url: session.url });
   } catch (error) {
-    // اطبع الخطأ حتى يظهر في لوج Vercel
     console.error("STRIPE ERROR:", error);
     res.status(500).json({ error: error.message });
   }
