@@ -31,6 +31,7 @@
   .muted{color:var(--muted)}
   .btn{background:#f3f4f6; color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px 14px; cursor:pointer}
   .btn.primary{background:linear-gradient(135deg,var(--brand),#60a5fa); color:#fff; font-weight:800; border-color:transparent}
+  .btn[disabled]{opacity:.6; cursor:not-allowed}
 
   /* HUD */
   .timer{position:fixed; top:14px; inset-inline-end:14px; z-index:55; background:#fff; border:1px solid var(--border); border-radius:12px; padding:8px 12px; font-weight:800; min-width:140px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.08)}
@@ -68,6 +69,10 @@
   .hint{font-size:13px; color:#6b7280}
   .error-msg{color:#dc2626; font-weight:700; font-size:14px}
   .toast{position:fixed; top:80px; inset-inline-start:50%; transform:translateX(-50%); background:#fff; color:#111827; border:1px solid var(--border); padding:10px 14px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.08); z-index:70}
+
+  /* Pay box */
+  .paybox{display:flex; align-items:center; gap:10px; background:#f8fafc; border:1px dashed var(--border); padding:12px; border-radius:12px}
+  .price{font-weight:800}
 </style>
 </head>
 <body>
@@ -114,11 +119,27 @@
       <div class="card">
         <h2 style="margin:0 0 6px">ابدأ الاختبار</h2>
         <p class="muted">عند الضغط يبدأ العدّ التنازلي (01:20:00) وتُفتح لوحة الاختبار.</p>
-        <button class="btn primary" id="goToQuiz">ابدأ الآن</button>
+
+        <!-- صندوق الدفع -->
+        <div class="paybox" id="payBox">
+          <span>سعر المحاولة:</span>
+          <span class="price">9 ريال</span>
+          <button id="payBtn" class="btn">ادفع 9 ريال لبدء الاختبار</button>
+          <span class="muted" id="payStatus"></span>
+        </div>
+
+        <div style="margin-top:10px">
+          <button class="btn primary" id="goToQuiz" disabled>ابدأ الآن</button>
+        </div>
+
+        <div class="hint" style="margin-top:8px">
+          للمعاينة فقط: افتح الرابط مع <code>?preview=1</code> لتجربة الواجهة وكأن الدفع مُفعّل مؤقتًا.
+        </div>
       </div>
+
       <div class="card">
         <h3>عن المنصّة</h3>
-        <p class="muted">أسئلة نظرية ومسائل محاسبية، مؤقّت، مراجعة إجابات، وحفظ النتائج حسب بريدك.</p>
+        <p class="muted">أسئلة نظرية ومسائل محاسبية، مؤقّت، مراجعة إجابات، وشبكة أرقام يمين. لن تبدأ المحاولة إلا بعد دفع 9 ريال — كل محاولة صالحة لمدة العدّ (80 دقيقة).</p>
       </div>
     </div>
   </section>
@@ -155,96 +176,62 @@
   <section id="page-results" class="page hidden">
     <div class="card">
       <h2 style="margin:0 0 6px">لوحة النتائج</h2>
-      <p class="muted" id="resultsHint">تعرض آخر محاولة بناءً على بريدك.</p>
-      <div id="lastResultBox" class="final hidden"></div>
-      <div id="lastReviewBox" class="review hidden"></div>
-      <div id="noResults" class="muted">لا توجد نتائج بعد… ابدأ اختبارًا ثم ارجع هنا.</div>
+      <p class="muted">تعرض آخر محاولة بناءً على بريدك (عند ربط الحفظ لاحقًا).</p>
+      <div class="muted">—</div>
     </div>
   </section>
 </div>
 
 <div id="toast" class="toast hidden">—</div>
 
-<!-- Supabase (اختياري لحفظ النتائج؛ احذف السكربت التالي إن ما تحتاجه) -->
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* Supabase config — عدّل إذا تغيرت مفاتيحك */
-const SUPABASE_URL  = "https://ryafsydlamazuofjdxvm.supabase.co";
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5YWZzeWRsYW1henVvZmpkeHZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2ODY3MDksImV4cCI6MjA3NDI2MjcwOX0.so8wQhS3VKSGLSgn5NSpqokw0RU_M7QIuWwnhJ1rEhs";
-const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
-
 /* صفحات */
 const pages={login:document.getElementById('page-login'),start:document.getElementById('page-start'),quiz:document.getElementById('page-quiz'),results:document.getElementById('page-results')};
 function show(name){
-  // منع فتح الاختبار/النتائج بدون تسجيل
-  if ((name==='quiz' || name==='results') && !isLoggedIn()) {
-    name='login';
-    showToast('سجّل دخول بالبريد للمتابعة');
-  }
+  if ((name==='quiz' || name==='results') && !isLoggedIn()) { name='login'; showToast('سجّل دخول بالبريد للمتابعة'); }
   Object.values(pages).forEach(p=>p.classList.add('hidden'));
   pages[name].classList.remove('hidden');
   if(name!=='quiz') hideHUD();
 }
 
 /* تنقّل علوي */
-document.getElementById('navHome').addEventListener('click', (e)=>{e.preventDefault(); show('start');});
-document.getElementById('navResults').addEventListener('click', async (e)=>{
-  e.preventDefault();
-  if (!requireLogin()) return;
-  await loadLastResult();
-  show('results');
-});
+document.getElementById('navHome').addEventListener('click',(e)=>{e.preventDefault();show('start');});
+document.getElementById('navResults').addEventListener('click',(e)=>{e.preventDefault();if(!requireLogin())return;show('results');});
 
-/* شارة المستخدم وزر الدخول/الخروج */
+/* شارة المستخدم */
 const loginTopBtn=document.getElementById('loginTopBtn');
 const userChip=document.getElementById('userChip');
 const userEmailText=document.getElementById('userEmailText');
 const logoutBtn=document.getElementById('logoutBtn');
-
 function updateAuthUI(){
   const em = localStorage.getItem('userEmail');
-  if(em){
-    loginTopBtn.classList.add('hidden');
-    userChip.classList.remove('hidden');
-    userEmailText.textContent = em;
-  } else {
-    loginTopBtn.classList.remove('hidden');
-    userChip.classList.add('hidden');
-    userEmailText.textContent = '—';
-  }
+  if(em){ loginTopBtn.classList.add('hidden'); userChip.classList.remove('hidden'); userEmailText.textContent=em; }
+  else { loginTopBtn.classList.remove('hidden'); userChip.classList.add('hidden'); userEmailText.textContent='—'; }
 }
-loginTopBtn.addEventListener('click', ()=> show('login'));
-logoutBtn.addEventListener('click', ()=>{
-  localStorage.removeItem('userEmail');
-  updateAuthUI();
-  show('login');
-  showToast('تم تسجيل الخروج');
-});
+loginTopBtn.addEventListener('click',()=>show('login'));
+logoutBtn.addEventListener('click',()=>{ localStorage.removeItem('userEmail'); localStorage.removeItem('purchase'); updateAuthUI(); updatePaymentUI(); show('login'); showToast('تم تسجيل الخروج'); });
 
-/* Login section */
+/* تسجيل الدخول */
 const emailInput=document.getElementById('emailInput');
 const loginBtn=document.getElementById('loginBtn');
 const loginError=document.getElementById('loginError');
 const toast=document.getElementById('toast');
-
-function showToast(msg){ toast.textContent=msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), 2000); }
+function showToast(msg){ toast.textContent=msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'),2000); }
 function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 function isLoggedIn(){ return !!localStorage.getItem('userEmail'); }
 function requireLogin(){ if(!isLoggedIn()){ show('login'); showToast('سجّل دخول بالبريد للمتابعة'); return false; } return true; }
-
-loginBtn.addEventListener('click', async ()=>{
+loginBtn.addEventListener('click', ()=> {
   const email=(emailInput.value||'').trim();
   if(!isValidEmail(email)){ loginError.classList.remove('hidden'); return; }
   loginError.classList.add('hidden');
   localStorage.setItem('userEmail', email);
   updateAuthUI();
-  // (اختياري) إنشاء/تحديث ملف مستخدم في Supabase
-  try{ await supa.from('profiles_open').upsert({ email }); }catch(e){}
+  updatePaymentUI();
   show('start');
   showToast('تم تسجيل الدخول');
 });
 
-/* Quiz UI */
+/* عناصر الاختبار */
 const goToQuiz=document.getElementById('goToQuiz');
 const timerEl=document.getElementById('timer');
 const infochips=document.getElementById('infochips');
@@ -259,11 +246,10 @@ const nextBtn=document.getElementById('nextBtn');
 const restartBtn=document.getElementById('restartBtn');
 const qpanel=document.getElementById('qpanel');
 const qnav=document.getElementById('qnav');
-
 function showHUD(){ timerEl.classList.remove('hidden'); infochips.classList.remove('hidden'); qpanel.classList.remove('hidden'); }
 function hideHUD(){ timerEl.classList.add('hidden'); infochips.classList.add('hidden'); qpanel.classList.add('hidden'); }
 
-/* Timer (1:20:00) */
+/* العدّ 80 دقيقة */
 const INITIAL_SECONDS = 80 * 60;
 let remaining=INITIAL_SECONDS, intervalId=null, finished=false;
 function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;const pad=n=>String(n).padStart(2,'0');return `${pad(h)}:${pad(m)}:${pad(ss)}`}
@@ -272,36 +258,20 @@ function tick(){ remaining--; if(remaining<=0){ remaining=0; stopTimer(); endQui
 function startTimer(){ remaining=INITIAL_SECONDS; updateTimerUI(); stopTimer(); intervalId=setInterval(tick,1000); }
 function stopTimer(){ if(intervalId){ clearInterval(intervalId); intervalId=null; } }
 
-/* Questions (تجريبي: سؤال واحد) */
-const QUESTIONS=[
-  { text:"[نظري] أي الجمل أدق عن القسط الثابت؟",
-    choices:["يستهلك قيمة الأصل بالكامل بغض النظر عن المتبقي","قسط سنوي = (التكلفة - المتبقي) ÷ العمر","لا يتأثر بأي تغيير تقدير","لا يجوز استخدامه للأصول الإنتاجية"],
-    correctIndex:1 }
-];
+/* سؤال تجريبي */
+const QUESTIONS=[{ text:"[نظري] أي الجمل أدق عن القسط الثابت؟", choices:["يستهلك قيمة الأصل بالكامل بغض النظر عن المتبقي","قسط سنوي = (التكلفة - المتبقي) ÷ العمر","لا يتأثر بأي تغيير تقدير","لا يجوز استخدامه للأصول الإنتاجية"], correctIndex:1 }];
 let idx=0, userAnswers=[], score=0;
 
-goToQuiz.addEventListener('click', ()=>{
-  if(!requireLogin()) return;
-  show('quiz'); showHUD();
-  finalBox.classList.add('hidden'); reviewBox.classList.add('hidden');
-  idx=0; score=0; finished=false; userAnswers=new Array(QUESTIONS.length).fill(null); scoreEl.textContent=score;
-  renderQNav(); loadQuestion(); startTimer();
-});
-
-/* right numbers */
+/* شبكة أرقام */
 function renderQNav(disable=false){
   qnav.innerHTML='';
-  QUESTIONS.forEach((_,i)=>{
-    const b=document.createElement('button');
-    b.type='button'; b.className='qnum'; b.textContent=(i+1);
-    if(i===idx) b.classList.add('active');
-    if(userAnswers[i]!==null) b.classList.add('answered');
+  QUESTIONS.forEach((_,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='qnum'; b.textContent=(i+1);
+    if(i===idx)b.classList.add('active'); if(userAnswers[i]!==null)b.classList.add('answered');
     b.disabled=disable;
-    b.addEventListener('click',()=>{ if(finished) return; idx=i; loadQuestion(); renderQNav(); });
+    b.addEventListener('click',()=>{ if(finished)return; idx=i; loadQuestion(); renderQNav(); });
     qnav.appendChild(b);
   });
 }
-
 function loadQuestion(){
   if(idx>=QUESTIONS.length) return endQuiz("انتهيت من جميع الأسئلة 🎉");
   const q=QUESTIONS[idx];
@@ -309,114 +279,105 @@ function loadQuestion(){
   progressEl.textContent=`سؤال ${idx+1} / ${QUESTIONS.length}`;
   pSmall.textContent=`${idx+1} من ${QUESTIONS.length}`;
   choicesBox.innerHTML='';
-  q.choices.forEach((label,i)=>{
-    const btn=document.createElement('button');
-    btn.type='button'; btn.className='choice'; btn.textContent=label;
+  q.choices.forEach((label,i)=>{ const btn=document.createElement('button'); btn.type='button'; btn.className='choice'; btn.textContent=label;
     if(userAnswers[idx]===i) btn.classList.add('selected');
-    btn.addEventListener('click',()=>{
-      document.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected'));
-      btn.classList.add('selected');
-      userAnswers[idx]=i;
-      nextBtn.disabled=false;
-      renderQNav();
-    });
+    btn.addEventListener('click',()=>{ document.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected')); btn.classList.add('selected'); userAnswers[idx]=i; nextBtn.disabled=false; renderQNav(); });
     choicesBox.appendChild(btn);
   });
   nextBtn.disabled=(userAnswers[idx]==null);
 }
-
-nextBtn.addEventListener('click', ()=>{
-  if(finished) return;
-  if(userAnswers[idx]==null) return;
-  idx++;
-  if(idx<QUESTIONS.length){ loadQuestion(); renderQNav(); }
-  else endQuiz("انتهيت من جميع الأسئلة 🎉");
-});
-
-async function endQuiz(message){
+function endQuiz(message){
   finished=true; stopTimer();
   score = userAnswers.reduce((acc,ans,i)=> acc + ((ans===QUESTIONS[i].correctIndex)?1:0), 0);
   scoreEl.textContent=score;
   const total=QUESTIONS.length, pct=Math.round((score/total)*100), passed=pct>=60;
-
   finalBox.classList.remove('hidden');
   finalBox.innerHTML=`<div>${message||''}</div>
     <div style="margin-top:6px">نتيجتك: <strong>${score}</strong> من <strong>${total}</strong> — (<strong>${pct}%</strong>)</div>
     <div class="${passed?'pass':'fail'}" style="margin-top:8px;font-size:18px;font-weight:800">${passed?'ناجح 🎉':'راسب • أرجع ذاكر'}</div>`;
+  const rows=QUESTIONS.map((q,i)=>{ const your=userAnswers[i]!=null?q.choices[userAnswers[i]]:'—'; const ok=q.choices[q.correctIndex]; const okCls=(userAnswers[i]===q.correctIndex)?'correctAns':'wrongAns'; return `<div><strong>س${i+1}:</strong> ${q.text}<br>إجابتك: <span class="${okCls}">${your}</span><br>الصحيحة: <span class="correctAns">${ok}</span></div>`; }).join('<hr>');
+  reviewBox.classList.remove('hidden'); reviewBox.innerHTML='<h3>مراجعة الإجابات:</h3>'+rows;
+  renderQNav(true); nextBtn.disabled=true; restartBtn.classList.remove('hidden'); restartBtn.onclick=()=>{ show('start'); updatePaymentUI(); };
+}
 
-  const rows=QUESTIONS.map((q,i)=>{
-    const your=userAnswers[i]!=null?q.choices[userAnswers[i]]:'—';
-    const ok=q.choices[q.correctIndex];
-    const okCls=(userAnswers[i]===q.correctIndex)?'correctAns':'wrongAns';
-    return `<div><strong>س${i+1}:</strong> ${q.text}<br>إجابتك: <span class="${okCls}">${your}</span><br>الصحيحة: <span class="correctAns">${ok}</span></div>`;
-  }).join('<hr>');
-  reviewBox.classList.remove('hidden');
-  reviewBox.innerHTML='<h3>مراجعة الإجابات:</h3>'+rows;
+/* التالي */
+nextBtn.addEventListener('click', ()=>{ if(finished)return; if(userAnswers[idx]==null)return; idx++; if(idx<QUESTIONS.length){ loadQuestion(); renderQNav(); } else endQuiz("انتهيت من جميع الأسئلة 🎉"); });
 
-  renderQNav(true);
-  nextBtn.disabled=true;
-  restartBtn.classList.remove('hidden');
-  restartBtn.onclick=()=>{ show('start'); };
+/* بدء الاختبار — يتطلب تسجيل + دفع مفعّل */
+goToQuiz.addEventListener('click', ()=>{
+  if(!requireLogin()) return;
+  if(!hasActivePurchase()) { showToast('أكمل الدفع أولاً'); return; }
+  show('quiz'); showHUD();
+  finalBox.classList.add('hidden'); reviewBox.classList.add('hidden');
+  idx=0; score=0; finished=false; userAnswers=new Array(QUESTIONS.length).fill(null); scoreEl.textContent=score;
+  renderQNav(); loadQuestion(); startTimer();
+});
 
-  // (اختياري) حفظ النتيجة في Supabase — احذف هذا البلوك إذا ما تحتاجه
+/* ——— الدفع (واجهة فقط الآن) ——— */
+const payBtn=document.getElementById('payBtn');
+const payStatus=document.getElementById('payStatus');
+
+function hasActivePurchase(){
+  const p = JSON.parse(localStorage.getItem('purchase') || 'null');
   const email = localStorage.getItem('userEmail');
-  if(email){
-    try{
-      const details = QUESTIONS.map((q,i)=>({q:q.text,your:userAnswers[i]!=null?q.choices[userAnswers[i]]:null,correct:q.choices[q.correctIndex],isCorrect:userAnswers[i]===q.correctIndex}));
-      await supa.from('results_open').insert({ email, score, total, percent:pct, details });
-    }catch(e){ console.warn('save result error', e?.message||e); }
+  if(!p || !email) return false;
+  return p.email === email && new Date(p.expires_at).getTime() > Date.now();
+}
+function updatePaymentUI(){
+  // تفعيل/تعطيل زر البدء حسب حالة الشراء
+  if(hasActivePurchase()){
+    payBtn.style.display='none';
+    payStatus.textContent='مدفوع — لديك محاولة فعالة الآن.';
+    document.getElementById('goToQuiz').disabled=false;
+  }else{
+    payBtn.style.display='inline-block';
+    payStatus.textContent='غير مدفوع — تحتاج تسديد 9 ريال لتفعيل محاولة واحدة (صالحة لمدة العدّ).';
+    document.getElementById('goToQuiz').disabled=true;
   }
 }
 
-/* صفحة النتائج: آخر محاولة */
-async function loadLastResult(){
-  const box = document.getElementById('lastResultBox');
-  const rev = document.getElementById('lastReviewBox');
-  const empty = document.getElementById('noResults');
-  box.classList.add('hidden'); rev.classList.add('hidden'); empty.classList.remove('hidden');
+payBtn.addEventListener('click', async ()=>{
+  if(!requireLogin()) return;
+  // حالياً فقط عرض واجهة — لاحقاً سنحوّل لصفحة الدفع Stripe/HyperPay
+  showToast('سيتم تحويلك لصفحة الدفع عند الربط…');
+});
 
-  const email = localStorage.getItem('userEmail');
-  if(!email){ document.getElementById('resultsHint').textContent='سجّل دخول بالبريد لعرض نتائجك.'; return; }
-  document.getElementById('resultsHint').textContent='تعرض آخر محاولة لبريدك: ' + email;
-
-  const { data, error } = await supa
-    .from('results_open')
-    .select('score,total,percent,details,created_at')
-    .eq('email', email)
-    .order('created_at', { ascending: false })
-    .limit(1);
-  if(error || !data || data.length===0) return;
-
-  const row = data[0];
-  const pct = Math.round(Number(row.percent ?? (row.total? (row.score/row.total*100) : 0)));
-  const passed = pct >= 60;
-
-  box.innerHTML = `<div>تاريخ المحاولة: ${new Date(row.created_at).toLocaleString('ar-SA')}</div>
-                   <div style="margin-top:6px">نتيجتك: <strong>${row.score}</strong> من <strong>${row.total}</strong> — (<strong>${pct}%</strong>)</div>
-                   <div class="${passed?'pass':'fail'}" style="margin-top:8px;font-size:18px;font-weight:800">${passed?'ناجح 🎉':'راسب'}</div>`;
-  box.classList.remove('hidden');
-
-  let details = row.details;
-  try{ if(typeof details === 'string') details = JSON.parse(details); }catch(_){}
-  if(Array.isArray(details) && details.length){
-    const html = details.map((d,i)=>`
-      <div><strong>س${i+1}:</strong> ${d.q}<br>
-      إجابتك: <span class="${d.isCorrect?'correctAns':'wrongAns'}">${d.your ?? '—'}</span><br>
-      الصحيحة: <span class="correctAns">${d.correct}</span></div>
-    `).join('<hr>');
-    rev.innerHTML = '<h3>مراجعة الإجابات:</h3>'+html;
-    rev.classList.remove('hidden');
+/* تسجيل الدخول */
+function applyPreviewIfAny(){
+  const url=new URL(window.location.href);
+  if(url.searchParams.get('preview')==='1'){
+    const email=localStorage.getItem('userEmail');
+    if(email){
+      const expires = new Date(Date.now() + (80*60*1000)).toISOString();
+      localStorage.setItem('purchase', JSON.stringify({ email, expires_at: expires }));
+      updatePaymentUI();
+      showToast('وضع المعاينة: تم تفعيل الدفع مؤقتًا');
+    }
   }
-  empty.classList.add('hidden');
 }
 
-/* تهيئة: عرّض حالة الدخول بالهيدر، ومنع فتح الاختبار بدون تسجيل */
-updateAuthUI();
-if (isLoggedIn()) { show('start'); } else { show('login'); }
-if (location.hash === '#quiz' || location.hash === '#results') {
-  if (!requireLogin()) location.hash = '#login';
-  else show(location.hash.slice(1));
+/* Login handlers */
+document.getElementById('loginTopBtn').addEventListener('click', ()=> show('login'));
+document.getElementById('loginBtn').addEventListener('click', ()=>{
+  const email=(emailInput.value||'').trim();
+  if(!isValidEmail(email)){ loginError.classList.remove('hidden'); return; }
+  loginError.classList.add('hidden');
+  localStorage.setItem('userEmail', email);
+  updateAuthUI();
+  updatePaymentUI();
+  applyPreviewIfAny();
+  show('start');
+  showToast('تم تسجيل الدخول');
+});
+
+/* init */
+function init(){
+  updateAuthUI();
+  updatePaymentUI();
+  if(isLoggedIn()) show('start'); else show('login');
+  applyPreviewIfAny();
 }
+init();
 </script>
 </body>
 </html>
