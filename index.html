@@ -9,157 +9,256 @@
   *{box-sizing:border-box}
   body{margin:0; background:var(--bg); color:var(--text); font-family:system-ui,-apple-system,"Segoe UI",Tahoma,Arial,sans-serif}
   .container{max-width:1100px; margin:16px auto; padding:0 16px}
-  .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px}
-  .btn{background:var(--brand); color:#fff; border:none; border-radius:10px; padding:10px 14px; cursor:pointer; font-weight:700}
+  .card{background:var(--card); border:1px solid var(--border); border-radius:16px; padding:16px; box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .grid{display:grid; gap:12px; grid-template-columns:1fr 1fr}
+  @media(max-width:800px){.grid{grid-template-columns:1fr}}
+  .muted{color:var(--muted)}
+  .btn{background:#f3f4f6; color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px 14px; cursor:pointer}
+  .btn.primary{background:linear-gradient(135deg,var(--brand),#60a5fa); color:#fff; font-weight:800; border-color:transparent}
   .hidden{display:none!important}
-  .square{max-width:560px; margin:auto; background:#fff; border:1px solid var(--border); border-radius:16px; padding:18px; display:grid; gap:14px}
-  .qbox{background:#f3f4f6; border:1px solid var(--border); border-radius:12px; padding:14px; font-size:18px}
-  .choice{border:1px solid var(--border); border-radius:12px; padding:12px; cursor:pointer; text-align:start}
-  .choice.selected{background:#dbeafe; border-color:var(--brand)}
-  .final{text-align:center; font-weight:800; padding:10px; border-radius:12px; background:#f9fafb}
-  .review{margin-top:14px; padding:12px; border-radius:12px; background:#f9fafb; border:1px solid var(--border)}
+
+  /* المؤقت + الهِدز */
+  .timer{position:fixed; top:14px; inset-inline-end:14px; z-index:55; background:#fff; border:1px solid var(--border); border-radius:12px; padding:8px 12px; font-weight:800; min-width:140px; text-align:center; box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .infochips{position:fixed; bottom:14px; inset-inline-start:14px; z-index:55; display:flex; gap:8px; flex-wrap:wrap; background:#fff; border:1px solid var(--border); border-radius:12px; padding:8px 12px; font-weight:700; box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .chip{background:#f3f4f6; border:1px solid var(--border); border-radius:999px; padding:4px 10px; font-size:14px}
+
+  /* مربع الاختبار */
+  .square{width:min(92vw, 560px); margin:auto; background:var(--card); border:1px solid var(--border); border-radius:16px; padding:18px; display:grid; grid-template-rows:auto auto auto auto auto; gap:14px; position:relative; z-index:80; box-shadow:0 4px 12px rgba(0,0,0,.1)}
+  .title{font-weight:800; font-size:18px}
+  .progress{font-size:14px; color:var(--muted)}
+  .qbox{background:#f3f4f6; border:1px solid var(--border); border-radius:12px; padding:14px; line-height:1.75; font-size:18px}
+  .answers{margin-top:10px}
+  .choices{display:grid; gap:12px}
+  .choice{appearance:none; border:1px solid rgba(0,0,0,.12); background:#fff; color:inherit; padding:12px 14px; border-radius:12px; text-align:start; cursor:pointer; transition:all .2s ease}
+  .choice:hover{transform:translateY(-1px); border-color:var(--brand); background:#eff6ff}
+  .choice.selected{outline:2px solid var(--brand); background:#dbeafe}
+  .final{text-align:center; font-weight:800; padding:10px 12px; border-radius:12px; border:1px solid var(--border); background:#f9fafb}
+  .review{margin-top:14px; padding:12px; border-radius:12px; background:#f9fafb; border:1px solid var(--border); font-size:14px; line-height:1.6}
+  .correctAns{color:#16a34a} .wrongAns{color:#dc2626}
+  .row{display:flex; gap:8px; justify-content:center}
   .pass{color:#16a34a} .fail{color:#dc2626}
-  .timer{position:fixed; top:14px; inset-inline-end:14px; background:#fff; border:1px solid var(--border); border-radius:12px; padding:8px 12px; font-weight:800; min-width:140px; text-align:center}
+
+  /* لوحة الأرقام يمين */
+  .qpanel{position:fixed; top:86px; inset-inline-end:14px; z-index:40; width:240px; max-height:60vh; overflow:auto; background:#fff; border:1px solid var(--border); border-radius:14px; padding:10px; box-shadow:0 2px 6px rgba(0,0,0,.08)}
+  .qpanel h4{margin:0 0 8px; font-size:14px; color:var(--muted)}
+  .qnav{display:grid; grid-template-columns:repeat(5,1fr); gap:6px}
+  .qnum{padding:8px 0; border:1px solid var(--border); background:#f3f4f6; color:#1f2937; border-radius:10px; cursor:pointer; text-align:center; font-weight:700}
+  .qnum.active{outline:2px solid var(--brand); background:#dbeafe}
+  .qnum.answered{border-color:var(--brand)}
+
+  /* صفحة تسجيل الدخول */
+  .login-wrap{display:grid; place-items:center; min-height:60vh}
+  .login-form{display:grid; gap:12px; max-width:420px; width:100%}
+  .input{width:100%; padding:12px 14px; border:1px solid var(--border); border-radius:12px; background:#fff; font-size:16px}
+  .hint{font-size:13px; color:#6b7280}
+  .error-msg{color:#dc2626; font-weight:700; font-size:14px}
+  .toast{position:fixed; top:80px; inset-inline-start:50%; transform:translateX(-50%); background:#fff; color:#111827; border:1px solid var(--border); padding:10px 14px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,.08); z-index:70}
 </style>
 </head>
 <body>
 <div class="container">
-
   <!-- تسجيل الدخول -->
   <section id="page-login" class="page">
-    <div class="card">
-      <h2>تسجيل الدخول</h2>
-      <input id="emailInput" type="email" placeholder="name@example.com" style="width:100%;padding:12px;margin-bottom:10px;border:1px solid var(--border);border-radius:10px">
-      <button id="loginBtn" class="btn">تسجيل الدخول</button>
-      <p id="loginError" class="fail hidden">فضلاً أدخل بريد صحيح</p>
+    <div class="login-wrap">
+      <div class="card login-form">
+        <h2>تسجيل الدخول</h2>
+        <label>البريد الإلكتروني
+          <input id="emailInput" type="email" class="input" placeholder="name@example.com" autocomplete="email" required>
+        </label>
+        <div class="hint">يمكنك التصفح بحرية، لكن لبدء الاختبار يجب تسجيل الدخول.</div>
+        <div id="loginError" class="error-msg hidden">فضلاً أدخل بريدًا صحيحًا.</div>
+        <button id="loginBtn" class="btn primary" type="button">تسجيل الدخول</button>
+      </div>
     </div>
   </section>
 
   <!-- البداية -->
   <section id="page-start" class="page hidden">
-    <div class="card">
-      <h2>ابدأ الاختبار</h2>
-      <button id="goToQuiz" class="btn">ابدأ الآن</button>
+    <div class="grid">
+      <div class="card">
+        <h2 style="margin:0 0 6px">ابدأ الاختبار</h2>
+        <p class="muted">يبدأ العدّ التنازلي (01:20:00) ويُفتح الاختبار.</p>
+        <button class="btn primary" id="goToQuiz">ابدأ الآن</button>
+      </div>
+      <div class="card">
+        <h3>لماذا هذه المنصّة؟</h3>
+        <p class="muted">أسئلة نظرية ومسائل محاسبية، مؤقت، مراجعة إجابات، وواجهة RTL عربية.</p>
+      </div>
     </div>
   </section>
 
   <!-- الاختبار -->
   <section id="page-quiz" class="page hidden">
-    <div id="timer" class="timer hidden">01:20:00</div>
+    <div class="timer hidden" id="timer">01:20:00</div>
+    <div class="infochips hidden" id="infochips">
+      <span class="chip" id="progress">سؤال 1 / 1</span>
+      <span class="chip">النقاط: <span id="score">0</span></span>
+    </div>
+
+    <!-- لوحة الأرقام يمين -->
+    <aside class="qpanel hidden" id="qpanel">
+      <h4>أسئلة</h4>
+      <div class="qnav" id="qnav"></div>
+    </aside>
+
     <div class="square">
+      <div class="title">لوحة الاختبار</div>
+      <div class="progress" id="pSmall">—</div>
       <div class="qbox" id="qText">—</div>
-      <div class="choices" id="choices"></div>
+      <div class="answers"><div class="choices" id="choices"></div></div>
       <div class="final hidden" id="finalBox"></div>
       <div class="review hidden" id="reviewBox"></div>
-      <button class="btn" id="nextBtn" disabled>التالي</button>
+      <div class="row">
+        <button class="btn" id="nextBtn" type="button" disabled>التالي ⏭️</button>
+        <button class="btn hidden" id="restartBtn" type="button">إعادة البدء ↻</button>
+      </div>
     </div>
   </section>
-
 </div>
 
+<div id="toast" class="toast hidden">—</div>
+
+<!-- Supabase -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-/* إعداد Supabase */
-const SUPABASE_URL  = "https://ryafsydlamazuofjdxvm.supabase.co"; // ضع رابطك
-const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."; // ضع مفتاحك
+/* Supabase config — استبدل إذا لزم */
+const SUPABASE_URL  = "https://ryafsydlamazuofjdxvm.supabase.co";
+const SUPABASE_ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ5YWZzeWRsYW1henVvZmpkeHZtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTg2ODY3MDksImV4cCI6MjA3NDI2MjcwOX0.so8wQhS3VKSGLSgn5NSpqokw0RU_M7QIuWwnhJ1rEhs";
 const supa = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
-/* عناصر */
-const pageLogin=document.getElementById('page-login');
-const pageStart=document.getElementById('page-start');
-const pageQuiz=document.getElementById('page-quiz');
+/* صفحات */
+const pages={login:document.getElementById('page-login'),start:document.getElementById('page-start'),quiz:document.getElementById('page-quiz')};
+function show(name){ Object.values(pages).forEach(p=>p.classList.add('hidden')); pages[name].classList.remove('hidden'); if(name!=='quiz') hideHUD(); }
+
+/* عناصر الدخول */
 const emailInput=document.getElementById('emailInput');
 const loginBtn=document.getElementById('loginBtn');
 const loginError=document.getElementById('loginError');
+const toast=document.getElementById('toast');
+
+function showToast(msg){ toast.textContent=msg; toast.classList.remove('hidden'); setTimeout(()=>toast.classList.add('hidden'), 2000); }
+function isValidEmail(e){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
+function isLoggedIn(){ return !!localStorage.getItem('userEmail'); }
+function updateAuthUI(){}
+
+/* عناصر الاختبار */
 const goToQuiz=document.getElementById('goToQuiz');
+const timerEl=document.getElementById('timer');
+const infochips=document.getElementById('infochips');
+const progressEl=document.getElementById('progress');
+const scoreEl=document.getElementById('score');
+const pSmall=document.getElementById('pSmall');
 const qText=document.getElementById('qText');
 const choicesBox=document.getElementById('choices');
-const nextBtn=document.getElementById('nextBtn');
 const finalBox=document.getElementById('finalBox');
 const reviewBox=document.getElementById('reviewBox');
-const timerEl=document.getElementById('timer');
+const nextBtn=document.getElementById('nextBtn');
+const restartBtn=document.getElementById('restartBtn');
+const qpanel=document.getElementById('qpanel');
+const qnav=document.getElementById('qnav');
 
-/* أسئلة تجريبية */
-const QUESTIONS=[{text:"[نظري] أي الجمل أدق عن القسط الثابت؟",choices:["يستهلك قيمة الأصل بالكامل","قسط سنوي = (التكلفة - المتبقي) ÷ العمر","لا يتأثر بالتغيير","لا يستخدم للأصول الإنتاجية"],correctIndex:1}];
+function showHUD(){ timerEl.classList.remove('hidden'); infochips.classList.remove('hidden'); qpanel.classList.remove('hidden'); }
+function hideHUD(){ timerEl.classList.add('hidden'); infochips.classList.add('hidden'); qpanel.classList.add('hidden'); }
 
-let idx=0, userAnswers=[], score=0, userEmail=null;
-let remaining=0, intervalId=null;
+/* العدّ التنازلي: 80 دقيقة */
+const INITIAL_SECONDS = 80 * 60;
 
-/* تسجيل الدخول */
-loginBtn.addEventListener('click',()=>{
+/* سؤال واحد للتجربة (ما غيّرته) */
+const QUESTIONS=[{ text:"[نظري] أي الجمل أدق عن القسط الثابت؟", choices:["يستهلك قيمة الأصل بالكامل بغض النظر عن المتبقي","قسط سنوي = (التكلفة - المتبقي) ÷ العمر","لا يتأثر بأي تغيير تقدير","لا يجوز استخدامه للأصول الإنتاجية"], correctIndex:1 }];
+
+let userEmail=null, idx=0, userAnswers=[], score=0;
+let remaining=INITIAL_SECONDS, intervalId=null, finished=false;
+
+/* مؤقّت */
+function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;const pad=n=>String(n).padStart(2,'0');return `${pad(h)}:${pad(m)}:${pad(ss)}`}
+function updateTimerUI(){ timerEl.textContent=fmt(remaining); }
+function tick(){ remaining--; if(remaining<=0){ remaining=0; stopTimer(); endQuiz("انتهى الوقت ⏰"); } updateTimerUI(); }
+function startTimer(){ remaining=INITIAL_SECONDS; updateTimerUI(); stopTimer(); intervalId=setInterval(tick,1000); }
+function stopTimer(){ if(intervalId){ clearInterval(intervalId); intervalId=null; } }
+
+/* تسجيل الدخول بالبريد فقط */
+loginBtn.addEventListener('click', async ()=>{
   const email=(emailInput.value||'').trim();
-  const ok=/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  if(!ok){loginError.classList.remove('hidden');return;}
+  if(!isValidEmail(email)){ loginError.classList.remove('hidden'); return; }
   loginError.classList.add('hidden');
   userEmail=email;
-  localStorage.setItem('userEmail',email);
-  pageLogin.classList.add('hidden');
-  pageStart.classList.remove('hidden');
+  localStorage.setItem('userEmail', email);
+  // اختياري: إنشاء ملف مستخدم
+  try{ await supa.from('profiles_open').upsert({ email }); }catch(e){}
+  show('start');
 });
 
 /* بدء الاختبار */
-goToQuiz.addEventListener('click',()=>{
-  pageStart.classList.add('hidden');
-  pageQuiz.classList.remove('hidden');
-  idx=0;score=0;userAnswers=[];
-  startTimer();
-  loadQuestion();
+goToQuiz.addEventListener('click', ()=>{
+  if(!isLoggedIn()){ show('login'); showToast('سجّل دخول بالبريد'); return; }
+  userEmail = localStorage.getItem('userEmail');
+  show('quiz'); showHUD();
+  finalBox.classList.add('hidden'); reviewBox.classList.add('hidden');
+  idx=0; score=0; finished=false; userAnswers=new Array(QUESTIONS.length).fill(null); scoreEl.textContent=score;
+  renderQNav(); loadQuestion(); startTimer();
 });
 
-/* المؤقت */
-function fmt(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60;const pad=n=>String(n).padStart(2,'0');return `${pad(h)}:${pad(m)}:${pad(ss)}`;}
-function updateTimerUI(){timerEl.textContent=fmt(remaining);}
-function tick(){remaining--; if(remaining<=0){remaining=0; stopTimer(); endQuiz("انتهى الوقت ⏰");} updateTimerUI();}
-function startTimer(){remaining=80*60; updateTimerUI(); timerEl.classList.remove('hidden'); stopTimer(); intervalId=setInterval(tick,1000);}
-function stopTimer(){if(intervalId){clearInterval(intervalId);intervalId=null;}}
+/* شبكة الأرقام يمين */
+function renderQNav(disable=false){
+  qnav.innerHTML='';
+  QUESTIONS.forEach((_,i)=>{ const b=document.createElement('button'); b.type='button'; b.className='qnum'; b.textContent=(i+1);
+    if(i===idx) b.classList.add('active');
+    if(userAnswers[i]!==null) b.classList.add('answered');
+    b.disabled=disable;
+    b.addEventListener('click',()=>{ if(finished) return; idx=i; loadQuestion(); renderQNav(); });
+    qnav.appendChild(b);
+  });
+}
 
 /* تحميل سؤال */
 function loadQuestion(){
+  if(idx>=QUESTIONS.length) return endQuiz("انتهيت من جميع الأسئلة 🎉");
   const q=QUESTIONS[idx];
   qText.textContent=q.text;
+  progressEl.textContent=`سؤال ${idx+1} / ${QUESTIONS.length}`;
+  pSmall.textContent=`${idx+1} من ${QUESTIONS.length}`;
   choicesBox.innerHTML='';
-  q.choices.forEach((c,i)=>{
-    const btn=document.createElement('button');
-    btn.className='choice';
-    btn.textContent=c;
+  q.choices.forEach((label,i)=>{ const btn=document.createElement('button'); btn.type='button'; btn.className='choice'; btn.textContent=label;
     if(userAnswers[idx]===i) btn.classList.add('selected');
-    btn.onclick=()=>{document.querySelectorAll('.choice').forEach(b=>b.classList.remove('selected'));btn.classList.add('selected');userAnswers[idx]=i;nextBtn.disabled=false;};
+    btn.addEventListener('click',()=>{ document.querySelectorAll('.choice').forEach(c=>c.classList.remove('selected')); btn.classList.add('selected'); userAnswers[idx]=i; nextBtn.disabled=false; renderQNav(); });
     choicesBox.appendChild(btn);
   });
   nextBtn.disabled=(userAnswers[idx]==null);
 }
 
 /* التالي */
-nextBtn.addEventListener('click',()=>{
-  if(userAnswers[idx]==null)return;
+nextBtn.addEventListener('click', ()=>{
+  if(finished) return;
+  if(userAnswers[idx]==null) return;
   idx++;
-  if(idx<QUESTIONS.length){loadQuestion();}
+  if(idx<QUESTIONS.length){ loadQuestion(); renderQNav(); }
   else endQuiz("انتهيت من جميع الأسئلة 🎉");
 });
 
-/* إنهاء */
+/* إنهاء + حفظ نتيجة */
 async function endQuiz(message){
-  stopTimer();
-  score=userAnswers.reduce((a,ans,i)=>a+(ans===QUESTIONS[i].correctIndex?1:0),0);
-  const total=QUESTIONS.length;
-  const pct=Math.round((score/total)*100);
-  const passed=pct>=60;
+  finished=true; stopTimer();
+  score = userAnswers.reduce((acc,ans,i)=> acc + ((ans===QUESTIONS[i].correctIndex)?1:0), 0);
+  scoreEl.textContent=score;
+  const total=QUESTIONS.length, pct=Math.round((score/total)*100), passed=pct>=60;
   finalBox.classList.remove('hidden');
-  finalBox.innerHTML=`<div>${message||''}</div><div>نتيجتك: <strong>${score}</strong> من <strong>${total}</strong> (${pct}%)</div><div class="${passed?'pass':'fail'}">${passed?'ناجح 🎉':'راسب 😢'}</div>`;
-  reviewBox.classList.remove('hidden');
-  reviewBox.innerHTML=QUESTIONS.map((q,i)=>`<div><b>س${i+1}:</b> ${q.text}<br>إجابتك: ${q.choices[userAnswers[i]]||'—'}<br>الصحيحة: ${q.choices[q.correctIndex]}</div>`).join('<hr>');
-  
+  finalBox.innerHTML=`<div>${message||''}</div><div style="margin-top:6px">نتيجتك: <strong>${score}</strong> من <strong>${total}</strong> — (<strong>${pct}%</strong>)</div><div class="${passed?'pass':'fail'}" style="margin-top:8px;font-size:18px;font-weight:800">${passed?'ناجح 🎉':'راسب • أرجع ذاكر'}</div>`;
+  const rows=QUESTIONS.map((q,i)=>{ const your=userAnswers[i]!=null?q.choices[userAnswers[i]]:'—'; const ok=q.choices[q.correctIndex]; const okCls=(userAnswers[i]===q.correctIndex)?'correctAns':'wrongAns'; return `<div><strong>س${i+1}:</strong> ${q.text}<br>إجابتك: <span class="${okCls}">${your}</span><br>الصحيحة: <span class="correctAns">${ok}</span></div>`; }).join('<hr>');
+  reviewBox.classList.remove('hidden'); reviewBox.innerHTML='<h3>مراجعة الإجابات:</h3>'+rows;
+  renderQNav(true); nextBtn.disabled=true; restartBtn.classList.remove('hidden'); restartBtn.onclick=()=>{ stopTimer(); show('start'); };
+
   if(userEmail){
-    const { error } = await supa.from('results_open').insert({
-      email:userEmail,
-      score:score,
-      total:total,
-      percent:pct,
-      details:JSON.stringify(userAnswers)
-    });
-    if(error) console.error('DB error',error.message);
+    try{
+      const payload = QUESTIONS.map((q,i)=>({
+        q: q.text, your: userAnswers[i]!=null ? q.choices[userAnswers[i]] : null, correct: q.choices[q.correctIndex], isCorrect: userAnswers[i]===q.correctIndex
+      }));
+      await supa.from('results_open').insert({ email:userEmail, score, total, percent:pct, details:payload });
+    }catch(e){ console.warn('save result error', e?.message||e); }
   }
 }
+
+/* تهيئة */
+if(isLoggedIn()){ show('start'); } else { show('login'); }
 </script>
 </body>
 </html>
